@@ -163,8 +163,8 @@ async function runE2ETests() {
 
         // Wait for page and DOM to be completely loaded
         for (let i = 0; i < 40; i++) {
-            const isReady = await cdp.evaluate('document.readyState === "complete" && Boolean(document.querySelector("header h1"))').catch(() => false);
-            if (isReady) break;
+            const diag = await cdp.evaluate('({ href: location.href, readyState: document.readyState, hasH1: Boolean(document.querySelector("header h1")), title: document.title })').catch(() => null);
+            if (diag && diag.hasH1) break;
             await new Promise(r => setTimeout(r, 200));
         }
 
@@ -291,8 +291,13 @@ async function runE2ETests() {
         console.log('  Triggering loadSamplePhotos() (synthetic duplicate + document test)...');
         await cdp.evaluate('LazySlothApp.loadSamplePhotos()');
 
-        // Wait for scanning to complete
-        await new Promise(r => setTimeout(r, 1500));
+        // Wait for scanning and AI classification to complete
+        for (let s = 0; s < 40; s++) {
+            const isScanning = await cdp.evaluate('Boolean(document.getElementById("scan-progress-box") && !document.getElementById("scan-progress-box").classList.contains("hidden"))');
+            const cardCount = await cdp.evaluate('document.querySelectorAll("#photo-grid .paper-card").length');
+            if (!isScanning && cardCount >= 4) break;
+            await new Promise(r => setTimeout(r, 500));
+        }
 
         const photoCardsCount = await cdp.evaluate('document.querySelectorAll("#photo-grid .paper-card").length');
         console.log(`  Photo cards rendered in grid: ${photoCardsCount}`);
@@ -306,10 +311,11 @@ async function runE2ETests() {
         console.log(`  Keep Safe (notes/originals) badges found: ${keepSafeBadges}`);
         if (keepSafeBadges < 2) throw new Error('Keep safe badges missing');
 
-        // Verify AI classification provenance badge is rendered on cards
+        // Verify AI classification provenance badge is rendered on cards (Gemma vision or rule engine)
+        const gemmaBadges = await cdp.evaluate('document.querySelectorAll("#photo-grid .fa-brain").length');
         const ruleBadges = await cdp.evaluate('document.querySelectorAll("#photo-grid .fa-code-branch").length');
-        console.log(`  Provenance Rule/AI badges rendered on cards: ${ruleBadges}`);
-        if (ruleBadges < 1) throw new Error('Provenance classification badge not rendered on photo cards');
+        console.log(`  Provenance badges rendered on cards: ${gemmaBadges} Gemma AI (.fa-brain), ${ruleBadges} Heuristic Rules (.fa-code-branch)`);
+        if (gemmaBadges + ruleBadges < 1) throw new Error('Provenance classification badge not rendered on photo cards');
 
         // Verify Demo Sample badges
         const sampleBadges = await cdp.evaluate('Array.from(document.querySelectorAll("#photo-grid span")).filter(el => el.innerText.includes("Demo Sample")).length');

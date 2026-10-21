@@ -62,6 +62,11 @@
 
         // Initialize sample demo inbox items so inbox & SMS screens are immediately usable
         seedDemoInboxData();
+
+        // Auto-detect local companion or configured backend
+        if (AppState.gemmaService.config.endpointUrl) {
+            AppState.gemmaService.connectLocalEndpoint().catch(() => {});
+        }
     }
 
     function updateGemmaUI(state) {
@@ -681,20 +686,50 @@
     }
 
     /**
+     * Helper to generate genuine, decodable PNG image blobs for sample testing
+     */
+    function createSampleImageBlob(width, height, color, labelText) {
+        if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.fillStyle = color === '#ffffff' ? '#111827' : '#ffffff';
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillText(labelText, 12, height / 2);
+                    return new Promise((resolve) => {
+                        canvas.toBlob((blob) => {
+                            if (blob) resolve(blob);
+                            else resolve(new Blob([`SAMPLE_${labelText}`], { type: 'image/png' }));
+                        }, 'image/png');
+                    });
+                }
+            } catch (e) {
+                // Fallback for environments without canvas
+            }
+        }
+        return Promise.resolve(new Blob([`SAMPLE_${labelText}`], { type: 'image/png' }));
+    }
+
+    /**
      * Helper to load built-in sample photos to test the duplicate detection workflow
      * without needing the user to upload their own images
      */
     async function loadSamplePhotos() {
-        // Create synthetic blobs with matching and distinct byte contents
-        const sample1Text = "LAZY_SLOTH_SAMPLE_IMAGE_BYTE_STREAM_A";
-        const sample2Text = "LAZY_SLOTH_SAMPLE_IMAGE_BYTE_STREAM_A"; // Exact match with 1!
-        const sample3Text = "LAZY_SLOTH_SAMPLE_IMAGE_BYTE_STREAM_B"; // Distinct!
-        const sampleDocText = "STUDY_NOTES_MATH_WHITEBOARD_LECTURE_2026"; // Document keyword!
+        const blob1 = await createSampleImageBlob(200, 200, '#e98776', 'Sunset Vacation');
+        const blob3 = await createSampleImageBlob(200, 200, '#244c3a', 'Forest Cabin');
+        const blob4 = await createSampleImageBlob(200, 200, '#ffffff', 'Study Notes Calculus');
 
-        const file1 = new File([sample1Text], "sunset_vacation_01.jpg", { type: "image/jpeg" });
-        const file2 = new File([sample2Text], "sunset_vacation_copy.jpg", { type: "image/jpeg" });
-        const file3 = new File([sample3Text], "forest_cabin_view.jpg", { type: "image/jpeg" });
-        const file4 = new File([sampleDocText], "study_notes_calculus_lecture.jpg", { type: "image/jpeg" });
+        // file1 and file2 share the exact identical blob1 byte stream,
+        // which guarantees an exact SHA-256 match while being a valid PNG decodable by Gemma Vision
+        const file1 = new File([blob1], "sunset_vacation_01.png", { type: "image/png" });
+        const file2 = new File([blob1], "sunset_vacation_copy.png", { type: "image/png" });
+        const file3 = new File([blob3], "forest_cabin_view.png", { type: "image/png" });
+        const file4 = new File([blob4], "study_notes_calculus_lecture.png", { type: "image/png" });
 
         [file1, file2, file3, file4].forEach(f => { f.isSample = true; });
 

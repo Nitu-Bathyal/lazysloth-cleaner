@@ -80,8 +80,16 @@
                 defaultEndpoint = 'http://localhost:5001';
             }
 
+            const isLocal = Boolean(
+                defaultEndpoint && (
+                    defaultEndpoint.includes('localhost') ||
+                    defaultEndpoint.includes('127.0.0.1') ||
+                    defaultEndpoint.includes('[::1]')
+                )
+            );
+
             this.config = Object.assign({
-                runtime: defaultEndpoint ? 'remote-endpoint' : 'heuristic-only',
+                runtime: defaultEndpoint ? (isLocal ? 'local-endpoint' : 'remote-backend') : 'heuristic-only',
                 selectedModel: 'paligemma-3b-pt-224',
                 endpointUrl: defaultEndpoint,
                 confidenceThreshold: 0.70, // Scores below this trigger "Keep Safe"
@@ -144,7 +152,12 @@
          * Comprehensive hardware and browser capability diagnostic
          */
         async checkEnvironmentSupport() {
-            this.setStatus(MODEL_STATUS.CHECKING, 'Checking browser hardware acceleration and WebGPU support...');
+            const wasReady = this.status === MODEL_STATUS.READY;
+            const previousMessage = this.statusMessage;
+
+            if (!wasReady) {
+                this.setStatus(MODEL_STATUS.CHECKING, 'Checking browser hardware acceleration and WebGPU support...');
+            }
 
             const diag = {
                 timestamp: new Date().toISOString(),
@@ -215,7 +228,9 @@
 
             this.lastDiagnostic = diag;
 
-            if (this.status !== MODEL_STATUS.READY) {
+            if (wasReady) {
+                this.setStatus(MODEL_STATUS.READY, previousMessage);
+            } else {
                 this.setStatus(
                     MODEL_STATUS.UNAVAILABLE,
                     diag.recommendation || 'Hardware diagnostic completed.'
@@ -266,11 +281,12 @@
                 }
 
                 const data = await response.json();
+                const isLocal = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1') || targetUrl.includes('[::1]');
                 this.activeModel = {
-                    name: data.modelName || 'PaliGemma Inference Service',
+                    name: data.modelName || 'Google PaliGemma Vision (SigLIP)',
                     type: data.type || 'multimodal',
                     endpoint: targetUrl,
-                    runtime: targetUrl.startsWith('http://localhost') ? 'local-endpoint' : 'remote-backend'
+                    runtime: isLocal ? 'local-endpoint' : 'remote-backend'
                 };
 
                 this.config.endpointUrl = targetUrl;
@@ -481,7 +497,7 @@
 
                     if (typeof this.inferenceProvider === 'function') {
                         prediction = await this.inferenceProvider(fileOrMetadata);
-                    } else if (this.config.runtime === 'local-endpoint' || this.config.runtime === 'remote-backend') {
+                    } else if (this.config.runtime === 'local-endpoint' || this.config.runtime === 'remote-backend' || this.config.runtime === 'remote-endpoint') {
                         prediction = await this._classifyViaLocalEndpoint(fileOrMetadata);
                     }
 
