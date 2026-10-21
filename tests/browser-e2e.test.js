@@ -241,9 +241,30 @@ async function runE2ETests() {
             toggle.dispatchEvent(new Event("change"));
         })()`);
 
-        // Test 5: Real Local Photo Duplicate Detection Workflow
-        console.log('\n[Check 5] Real Local Photo Duplicate Detection & Hashing');
+        // Test 5: Real Local Photo Duplicate Detection & Gemma Provenance Workflow
+        console.log('\n[Check 5] Real Local Photo Duplicate Detection & Gemma Provenance');
         await cdp.evaluate('LazySlothApp.switchTab("photos")');
+
+        // Verify AI Status Pill in Header
+        const aiStatusText = await cdp.evaluate('document.getElementById("ai-status-label").innerText');
+        console.log(`  AI Status Pill: "${aiStatusText}"`);
+        if (!aiStatusText.includes('Gemma')) throw new Error('AI Status Pill text missing');
+
+        // Test Gemma Diagnostics Modal
+        console.log('  Testing Gemma Diagnostics Modal & Hardware Check...');
+        await cdp.evaluate('LazySlothApp.openGemmaDiagnosticsModal()');
+        const gemmaModalOpen = await cdp.evaluate('!document.getElementById("gemma-diagnostics-modal").classList.contains("hidden")');
+        if (!gemmaModalOpen) throw new Error('Gemma diagnostics modal did not open');
+
+        await cdp.evaluate('LazySlothApp.runGemmaDiagnostics()');
+        await new Promise(r => setTimeout(r, 600));
+        const diagOutput = await cdp.evaluate('document.getElementById("gemma-diag-output").innerText');
+        console.log(`  Diagnostic probed WebGPU: ${diagOutput.includes('webGPU_Available')}`);
+        if (!diagOutput.includes('webGPU_Available')) throw new Error('Hardware diagnostic output missing');
+
+        await cdp.evaluate('LazySlothApp.closeGemmaDiagnosticsModal()');
+        const gemmaModalClosed = await cdp.evaluate('document.getElementById("gemma-diagnostics-modal").classList.contains("hidden")');
+        if (!gemmaModalClosed) throw new Error('Gemma modal did not close');
         
         console.log('  Triggering loadSamplePhotos() (synthetic duplicate + document test)...');
         await cdp.evaluate('LazySlothApp.loadSamplePhotos()');
@@ -262,6 +283,11 @@ async function runE2ETests() {
         const keepSafeBadges = await cdp.evaluate('document.querySelectorAll("#photo-grid .bg-emerald-600").length');
         console.log(`  Keep Safe (notes/originals) badges found: ${keepSafeBadges}`);
         if (keepSafeBadges < 2) throw new Error('Keep safe badges missing');
+
+        // Verify AI classification provenance badge is rendered on cards
+        const ruleBadges = await cdp.evaluate('document.querySelectorAll("#photo-grid .fa-code-branch").length');
+        console.log(`  Provenance Rule/AI badges rendered on cards: ${ruleBadges}`);
+        if (ruleBadges < 1) throw new Error('Provenance classification badge not rendered on photo cards');
 
         // Test 6: Review Queue Synchronization & Badges
         console.log('\n[Check 6] Review Queue Synchronization');

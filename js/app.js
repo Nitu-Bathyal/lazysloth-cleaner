@@ -55,8 +55,58 @@
             }
         });
 
+        // Subscribe UI updates to Gemma AI service state changes
+        AppState.gemmaService.subscribe((state) => {
+            updateGemmaUI(state);
+        });
+
         // Initialize sample demo inbox items so inbox & SMS screens are immediately usable
         seedDemoInboxData();
+    }
+
+    function updateGemmaUI(state) {
+        const pillDot = document.getElementById('ai-status-dot');
+        const pillLabel = document.getElementById('ai-status-label');
+        const photosDot = document.getElementById('photos-ai-dot');
+        const photosText = document.getElementById('photos-ai-text');
+        const settingsStatus = document.getElementById('settings-gemma-status');
+        const settingsDesc = document.getElementById('settings-gemma-desc');
+        const modalBadge = document.getElementById('gemma-modal-status-badge');
+        const modalDesc = document.getElementById('gemma-modal-status-desc');
+
+        let dotClass = 'bg-slate-400';
+        let labelText = 'Gemma AI: Offline';
+        let descText = 'PaliGemma 3B Vision (Offline)';
+
+        if (state.isReady) {
+            dotClass = 'bg-emerald-500 animate-pulse';
+            labelText = 'Gemma AI: Ready';
+            descText = `Active: ${state.activeModel ? state.activeModel.name : 'PaliGemma'}`;
+        } else if (state.isLoading) {
+            dotClass = 'bg-amber-500 animate-pulse';
+            labelText = 'Gemma: Loading...';
+            descText = 'Model weights initializing...';
+        } else if (state.isError) {
+            dotClass = 'bg-red-500';
+            labelText = 'Gemma: Error';
+            descText = 'Inference error (Check diagnostics)';
+        } else {
+            dotClass = 'bg-slate-400';
+            labelText = 'Gemma: Offline';
+            descText = 'Local Hashing Active (Unconfigured)';
+        }
+
+        if (pillDot) pillDot.className = `w-2 h-2 rounded-full ${dotClass}`;
+        if (pillLabel) pillLabel.innerText = labelText;
+        if (photosDot) photosDot.className = `w-2 h-2 rounded-full ${dotClass}`;
+        if (photosText) photosText.innerText = state.isReady ? `AI Status: ${state.activeModel.name} Active` : `AI Status: Offline (Exact SHA-256 Active)`;
+        if (settingsStatus) settingsStatus.innerText = state.isReady ? 'Ready' : (state.isLoading ? 'Loading' : (state.isError ? 'Error' : 'Offline'));
+        if (settingsDesc) settingsDesc.innerText = descText;
+        if (modalBadge) {
+            modalBadge.className = `px-2 py-0.5 rounded-full text-xs font-bold ${state.isReady ? 'bg-emerald-100 text-emerald-800' : (state.isError ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-800')}`;
+            modalBadge.innerText = state.status.toUpperCase();
+        }
+        if (modalDesc) modalDesc.innerText = state.message || '';
     }
 
     /**
@@ -360,8 +410,8 @@
                 }
             });
 
-            // Create object URLs for thumbnails
-            scanResult.items.forEach(item => {
+            // Create object URLs for thumbnails & run Gemma/heuristic classification
+            for (const item of scanResult.items) {
                 if (item.file && !item.thumbnailUrl) {
                     try {
                         item.thumbnailUrl = URL.createObjectURL(item.file);
@@ -369,7 +419,19 @@
                         console.warn('Could not create thumbnail URL:', e);
                     }
                 }
-            });
+
+                try {
+                    const aiResult = await AppState.gemmaService.classifyPhoto(item.file || { name: item.fileName, isDuplicate: item.isDuplicate });
+                    item.aiClassification = aiResult;
+                    // Invariant: If AI identifies a document or study note, ALWAYS enforce Keep Safe protection
+                    if (aiResult.category === 'documents' || (aiResult.keepSafe && !item.isDuplicate)) {
+                        item.keepSafe = true;
+                        item.selected = false;
+                    }
+                } catch (aiErr) {
+                    console.warn('[LazySloth] AI classification error:', aiErr);
+                }
+            }
 
             // Add processed items into centralized ReviewStore
             AppState.reviewStore.addItems(scanResult.items);
@@ -488,6 +550,19 @@
                         <span class="text-[10px] font-bold text-mutedText">${item.formattedSize}</span>
                     </div>
                     <p class="text-[9px] text-mutedText truncate" title="${escapeHtml(item.reason)}">${escapeHtml(item.reason)}</p>
+                    ${item.aiClassification ? `
+                    <div class="pt-0.5 pb-0.5">
+                        ${item.aiClassification.method === 'gemma-vision-model' 
+                            ? `<span class="inline-flex items-center space-x-1 bg-purple-100 text-purple-900 border border-purple-200 px-1.5 py-0.2 rounded text-[8px] font-bold" title="${escapeHtml(item.aiClassification.explanation)}">
+                                 <i class="fa-solid fa-brain text-[8px] text-purple-700"></i>
+                                 <span>Gemma: ${escapeHtml(item.aiClassification.category)} (${Math.round(item.aiClassification.confidence * 100)}%)</span>
+                               </span>`
+                            : `<span class="inline-flex items-center space-x-1 bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.2 rounded text-[8px] font-medium" title="${escapeHtml(item.aiClassification.explanation)}">
+                                 <i class="fa-solid fa-code-branch text-[8px] text-slate-500"></i>
+                                 <span>Rule: ${escapeHtml(item.aiClassification.category)}</span>
+                               </span>`
+                        }
+                    </div>` : ''}
                     <div class="pt-1 flex items-center justify-between border-t border-sage/10 text-[10px]">
                         <button onclick="LazySlothApp.toggleItemKeepSafe('${item.id}')" class="font-bold ${item.keepSafe ? 'text-emerald-700 hover:text-emerald-800' : 'text-forest hover:text-coral'} flex items-center space-x-1">
                             <i class="fa-solid ${item.keepSafe ? 'fa-lock' : 'fa-lock-open'}"></i>
@@ -720,6 +795,66 @@
     }
 
     // -------------------------------------------------------------------------
+    // Gemma AI Setup & Diagnostics Modal Handlers
+    // -------------------------------------------------------------------------
+    function openGemmaDiagnosticsModal() {
+        const modal = document.getElementById('gemma-diagnostics-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            const state = AppState.gemmaService.getStatus();
+            updateGemmaUI(state);
+        }
+    }
+
+    function closeGemmaDiagnosticsModal() {
+        const modal = document.getElementById('gemma-diagnostics-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    async function runGemmaDiagnostics() {
+        const output = document.getElementById('gemma-diag-output');
+        if (output) output.innerText = 'Testing browser WebGPU hardware acceleration...';
+        const diag = await AppState.gemmaService.checkEnvironmentSupport();
+        if (output) {
+            output.innerText = JSON.stringify({
+                webGPU_Available: diag.webGPU,
+                webGPU_DeviceCreated: diag.webGPUDevice,
+                adapter: diag.adapterInfo,
+                limits: diag.limits,
+                webAssemblySIMD: diag.webAssembly,
+                recommendation: diag.recommendation
+            }, null, 2);
+        }
+    }
+
+    async function connectLocalGemmaEndpoint() {
+        const input = document.getElementById('gemma-endpoint-input');
+        const url = (input && input.value) ? input.value.trim() : 'http://localhost:5001';
+        const result = await AppState.gemmaService.connectLocalEndpoint(url);
+        if (!result.success) {
+            alert(`Connection notice: ${result.error}`);
+        } else {
+            alert(`Connected successfully to ${result.model.name}!`);
+            closeGemmaDiagnosticsModal();
+        }
+    }
+
+    async function requestGemmaModelDownload() {
+        const confirmed = confirm(
+            "BANDWIDTH & MEMORY NOTICE:\n\n" +
+            "Downloading the quantized PaliGemma 3B vision model requires approximately 1.8 GB to 3.2 GB of data and at least 3.5 GB of available RAM/VRAM.\n\n" +
+            "Do you authorize this download for local on-device inference?"
+        );
+        if (!confirmed) return;
+
+        try {
+            await AppState.gemmaService.initOnDeviceWebGPU({ userConsent: true });
+        } catch (err) {
+            alert(`Setup notice: ${err.message}`);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Accessibility: Reduced Motion
     // -------------------------------------------------------------------------
     function initReducedMotion() {
@@ -813,7 +948,13 @@
         executeFinalSweep,
         openEmailConnectModal,
         closeEmailConnectModal,
-        resetDemoSession
+        openGemmaDiagnosticsModal,
+        closeGemmaDiagnosticsModal,
+        runGemmaDiagnostics,
+        connectLocalGemmaEndpoint,
+        requestGemmaModelDownload,
+        resetDemoSession,
+        getGemmaService: () => AppState.gemmaService
     };
 
 })();

@@ -71,10 +71,10 @@
             </div>
 
             <div class="flex items-center space-x-2">
-                <div class="bg-sageLight text-forest px-2.5 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 border border-sage/30">
-                    <i class="fa-solid fa-shield-halved text-xs text-forest"></i>
-                    <span id="privacy-badge">100% On-Device</span>
-                </div>
+                <button onclick="LazySlothApp.openGemmaDiagnosticsModal()" id="ai-status-pill" class="bg-sageLight text-forest px-2.5 py-1 rounded-full text-xs font-semibold flex items-center space-x-1.5 border border-sage/30 hover:bg-sage/40 transition shadow-sm" title="Click to view Gemma AI diagnostics & settings">
+                    <span id="ai-status-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span id="ai-status-label" class="text-[10px] font-bold text-forest">Gemma AI: Offline</span>
+                </button>
                 <button onclick="LazySlothApp.switchTab('settings')" aria-label="Open Settings" class="w-8 h-8 rounded-full bg-white hover:bg-sageLight flex items-center justify-center text-forest transition shadow-sm border border-sage/20">
                     <i class="fa-solid fa-gear text-sm"></i>
                 </button>
@@ -383,6 +383,18 @@
                     <span>Important notes, docs & study photos are automatically tagged <strong>"Keep Safe"</strong> and unselected.</span>
                 </div>
 
+                <!-- AI Status Bar & Model Diagnostics -->
+                <div class="px-3.5 py-2 rounded-2xl bg-white border border-sage/30 flex items-center justify-between text-xs shadow-sm">
+                    <div class="flex items-center space-x-2 min-w-0">
+                        <span id="photos-ai-dot" class="w-2 h-2 rounded-full bg-slate-400 flex-shrink-0"></span>
+                        <span id="photos-ai-text" class="text-[11px] font-medium text-forest truncate">AI Status: Offline (Exact SHA-256 Active)</span>
+                    </div>
+                    <button onclick="LazySlothApp.openGemmaDiagnosticsModal()" class="text-[10px] font-bold text-forest hover:text-coral transition flex items-center space-x-1 flex-shrink-0 ml-2">
+                        <span>Setup & Diag</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                    </button>
+                </div>
+
                 <!-- Real Local Photo Picker Controls -->
                 <div class="paper-card rounded-2xl p-3.5 border border-sage/30 space-y-2.5">
                     <input type="file" id="photo-file-input" multiple accept="image/*" class="hidden">
@@ -581,9 +593,12 @@
                         <div class="flex items-center justify-between">
                             <div class="space-y-0.5">
                                 <p class="text-xs font-bold text-forest">Gemma AI Model</p>
-                                <p class="text-[10px] text-mutedText">Local exact SHA-256 hash detection</p>
+                                <p id="settings-gemma-desc" class="text-[10px] text-mutedText">PaliGemma 3B Vision (Offline)</p>
                             </div>
-                            <span class="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">Not Configured</span>
+                            <button onclick="LazySlothApp.openGemmaDiagnosticsModal()" class="text-xs font-bold text-forest bg-sageLight hover:bg-sage/40 px-2.5 py-1 rounded-full border border-sage/30 transition flex items-center space-x-1">
+                                <span id="settings-gemma-status">Offline</span>
+                                <i class="fa-solid fa-chevron-right text-[9px] ml-0.5"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -676,6 +691,87 @@
                 <div class="pt-1">
                     <button onclick="LazySlothApp.closeEmailConnectModal()" class="w-full py-2.5 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
                         Got it, Return to Inbox
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GEMMA AI SETUP & DIAGNOSTICS MODAL -->
+        <div id="gemma-diagnostics-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden transition-opacity">
+            <div class="bg-white rounded-3xl p-5 w-full max-w-xs space-y-3 shadow-2xl border border-sage/30 text-left max-h-[85vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-sage/20 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-sm text-forest">Gemma AI Diagnostics</h3>
+                    </div>
+                    <button onclick="LazySlothApp.closeGemmaDiagnosticsModal()" class="w-6 h-6 rounded-full hover:bg-slate-100 text-mutedText flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Real-time Status Strip -->
+                <div class="p-2.5 rounded-2xl bg-cream border border-sage/20 space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-forest">Engine Status:</span>
+                        <span id="gemma-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">UNAVAILABLE</span>
+                    </div>
+                    <p id="gemma-modal-status-desc" class="text-[10px] text-mutedText leading-relaxed">
+                        Gemma AI is unconfigured. Exact SHA-256 duplicate detection is active.
+                    </p>
+                </div>
+
+                <!-- Model Architecture Facts -->
+                <div class="text-xs space-y-1 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-[11px] text-forest flex items-center space-x-1">
+                        <i class="fa-solid fa-circle-info text-forest"></i>
+                        <span>Model Architecture & Requirements</span>
+                    </h4>
+                    <p class="text-[10px] text-slate-700 leading-relaxed">
+                        • <strong>Text-only Gemma (2B/7B)</strong> cannot process photos because it lacks vision encoder layers (SigLIP/ViT).
+                    </p>
+                    <p class="text-[10px] text-slate-700 leading-relaxed">
+                        • <strong>PaliGemma 3B</strong> is the multimodal vision model, requiring ~1.8 GB to 3.2 GB download and >=3 GB VRAM.
+                    </p>
+                    <p class="text-[10px] text-slate-700 leading-relaxed">
+                        • <strong>Licensing:</strong> Google Gemma Terms of Use. Never downloaded silently.
+                    </p>
+                </div>
+
+                <!-- Interactive Hardware Diagnostics -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-forest">Hardware Capability Test</span>
+                        <button onclick="LazySlothApp.runGemmaDiagnostics()" class="text-[10px] font-bold text-coral hover:underline">
+                            <i class="fa-solid fa-microchip mr-0.5"></i> Run Test
+                        </button>
+                    </div>
+                    <pre id="gemma-diag-output" class="bg-slate-900 text-emerald-400 p-2 rounded-xl text-[9px] font-mono overflow-x-auto max-h-24 leading-tight">Click "Run Test" to probe WebGPU & buffers...</pre>
+                </div>
+
+                <!-- Local Endpoint Connection -->
+                <div class="space-y-1 pt-1 border-t border-sage/10">
+                    <span class="text-[11px] font-bold text-forest">Connect Local Endpoint (localhost)</span>
+                    <div class="flex items-center space-x-1.5">
+                        <input type="text" id="gemma-endpoint-input" value="http://localhost:5001" class="flex-1 px-2.5 py-1 text-xs rounded-xl border border-sage/30 bg-slate-50 font-mono">
+                        <button onclick="LazySlothApp.connectLocalGemmaEndpoint()" class="px-2.5 py-1 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
+                            Connect
+                        </button>
+                    </div>
+                </div>
+
+                <!-- On-Device Download Consent -->
+                <div class="pt-1">
+                    <button onclick="LazySlothApp.requestGemmaModelDownload()" class="w-full py-2 bg-creamDark hover:bg-sageLight text-forest font-bold text-xs rounded-xl border border-sage/30 transition flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-cloud-arrow-down text-forest"></i>
+                        <span>Download On-Device Model (~1.8 GB)</span>
+                    </button>
+                </div>
+
+                <div class="pt-1">
+                    <button onclick="LazySlothApp.closeGemmaDiagnosticsModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-darkText font-bold text-xs rounded-xl transition">
+                        Close
                     </button>
                 </div>
             </div>
