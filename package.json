@@ -2,7 +2,12 @@
   "name": "lazysloth-cleaner",
   "version": "1.0.0",
   "description": "LazySloth Cleaner - Stay cozy. We'll sort the clutter together.",
+  "homepage": "https://lazysloth-cleaner.onrender.com",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nitu-Bathyal/lazysloth-cleaner.git"
+  },
   "scripts": {
     "start": "node server.js",
     "companion": "python companion/gemma_companion.py",
