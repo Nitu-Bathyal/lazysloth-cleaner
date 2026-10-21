@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LazySloth Cleaner - Stay Cozy</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#F8F6F0',
+                        creamDark: '#EFECE1',
+                        forest: '#244C3A',
+                        forestLight: '#2D5E48',
+                        sage: '#A8C8A0',
+                        sageLight: '#E3EFE0',
+                        butter: '#F2D77A',
+                        coral: '#E98776',
+                        coralLight: '#FCEBE8',
+                        darkText: '#292D29',
+                        mutedText: '#777B73',
+                        cardBg: '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Fredoka', 'cursive'],
+                    },
+                    boxShadow: {
+                        'cozy': '0 8px 30px rgba(36, 76, 58, 0.08)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.04)',
+                        'btn': '0 6px 18px rgba(233, 135, 118, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #1A2E26;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.03);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #A8C8A0;
+            border-radius: 99px;
+        }
+
+        /* Mascot Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        @keyframes breathing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        @keyframes blinkEye {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        @keyframes tailSway {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        @keyframes sweepBroom {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            25% { transform: rotate(-12deg) translateX(-10px) translateY(4px); }
+            75% { transform: rotate(8deg) translateX(12px) translateY(-2px); }
+        }
+        @keyframes leafFloat {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(0.8); }
+            100% { opacity: 0; transform: translateY(-40px) rotate(180deg) scale(1.2); }
+        }
+        @keyframes sleepingZ {
+            0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translate(20px, -30px) scale(1.2); }
+        }
+        @keyframes waveHand {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+        @keyframes hopJoy {
+            0%, 100% { transform: translateY(0) scale(1); }
+            40% { transform: translateY(-18px) scale(1.05); }
+            60% { transform: translateY(-8px) scale(0.98); }
+        }
+
+        .anim-float { animation: floatSlow 4s ease-in-out infinite; }
+        .anim-breathe { animation: breathing 3.5s ease-in-out infinite; }
+        .anim-eye-blink { animation: blinkEye 4s infinite; transform-origin: center; }
+        .anim-sway { animation: tailSway 5s ease-in-out infinite; transform-origin: top center; }
+        .anim-sweep { animation: sweepBroom 1.2s ease-in-out infinite; transform-origin: 30% 70%; }
+        .anim-wave { animation: waveHand 1.5s ease-in-out infinite; transform-origin: bottom right; }
+        .anim-hop { animation: hopJoy 0.8s ease-in-out infinite; }
+
+        .z-particle-1 { animation: sleepingZ 2.5s infinite 0s; }
+        .z-particle-2 { animation: sleepingZ 2.5s infinite 0.8s; }
+        .z-particle-3 { animation: sleepingZ 2.5s infinite 1.6s; }
+
+        .leaf-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: leafFloat 1.8s ease-out infinite;
+        }
+
+        /* Glassmorphism & Decorative Texture */
+        .paper-card {
+            background-color: #FFFFFF;
+            border: 1px solid rgba(168, 200, 160, 0.25);
+            box-shadow: 0 4px 20px rgba(36, 76, 58, 0.05);
+        }
+
+        .speech-bubble {
+            position: relative;
+            background: #FFFFFF;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(36, 76, 58, 0.1);
+            border: 2px solid #E3EFE0;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 28px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #FFFFFF transparent;
+            display: block;
+            width: 0;
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -13px;
+            left: 27px;
+            border-width: 11px 11px 0;
+            border-style: solid;
+            border-color: #E3EFE0 transparent;
+            display: block;
+            width: 0;
+        }
+
+        /* Responsive Mobile Container Lock */
+        .app-shell {
+            max-width: 440px;
+            height: 100vh;
+            max-height: 920px;
+        }
+        @media (max-height: 700px) {
+            .app-shell { height: 100vh; max-height: 100vh; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-slate-900">
+
+    <!-- MAIN APP CONTAINER (Mobile Frame Viewport) -->
+    <div id="app" class="app-shell w-full bg-cream text-darkText flex flex-col relative overflow-hidden shadow-2xl md:rounded-[40px] border-4 border-slate-800/20">
+        
+        <!-- STATUS / TOP BAR -->
+        <header class="px-5 pt-4 pb-2 bg-cream/90 backdrop-blur-md z-30 flex items-center justify-between border-b border-sage/10">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-forest flex items-center justify-center text-butter text-xs font-bold shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg text-forest leading-tight tracking-wide">LazySloth</h1>
+                    <div class="flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-semibold text-mutedText tracking-wider uppercase">100% On-Device AI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <div class="bg-sageLight text-forest px-2.5 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 border border-sage/30">
+                    <i class="fa-solid fa-shield-halved text-xs text-forest"></i>
+                    <span id="privacy-badge">Private</span>
+                </div>
+                <button onclick="switchTab('settings')" class="w-8 h-8 rounded-full bg-white hover:bg-sageLight flex items-center justify-center text-forest transition shadow-sm border border-sage/20">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC MASCOT HEADER / HERO PANEL -->
+        <div id="mascot-stage" class="relative px-5 pt-2 pb-1 bg-gradient-to-b from-cream via-cream to-creamDark/40 transition-all duration-500 border-b border-sage/10 flex-shrink-0">
+            
+            <!-- Speech Bubble -->
+            <div class="mb-2 transition-all duration-300">
+                <div class="speech-bubble px-4 py-2.5 max-w-[92%] mx-auto flex items-start space-x-2">
+                    <i class="fa-solid fa-quote-left text-sage text-xs mt-0.5 opacity-60"></i>
+                    <p id="sloth-speech" class="text-xs font-medium text-forest leading-snug">
+                        Oh, hiiii! Ready to make a little room? Stay cozy, I'll sweep!
+                    </p>
+                </div>
+            </div>
+
+            <!-- SVG Mascot Canvas & Branch Area -->
+            <div class="relative h-44 w-full flex items-center justify-center overflow-visible">
+                
+                <!-- Tree Branch Backdrop -->
+                <svg class="absolute bottom-1 w-full h-12 text-forest/20" viewBox="0 0 300 40" fill="none" preserveAspectRatio="none">
+                    <path d="M0,25 C50,15 120,35 200,20 C250,10 280,25 300,20 L300,40 L0,40 Z" fill="#244C3A" opacity="0.15"/>
+                    <path d="M10,22 Q80,32 170,18 T300,18" stroke="#244C3A" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+                    <!-- Leaves on branch -->
+                    <path d="M40,18 Q30,8 45,5 Q55,12 40,18 Z" fill="#A8C8A0"/>
+                    <path d="M180,15 Q170,5 185,2 Q195,9 180,15 Z" fill="#A8C8A0"/>
+                    <path d="M260,16 Q250,6 265,3 Q275,10 260,16 Z" fill="#A8C8A0"/>
+                </svg>
+
+                <!-- Sleeping Z's Particle Layer (Active in NAP mode) -->
+                <div id="sleep-particles" class="absolute right-16 top-4 hidden pointer-events-none">
+                    <span class="z-particle-1 absolute text-forest font-display font-bold text-lg">Z</span>
+                    <span class="z-particle-2 absolute text-forest/70 font-display font-bold text-base -top-3 left-3">z</span>
+                    <span class="z-particle-3 absolute text-forest/40 font-display font-bold text-xs -top-6 left-6">z</span>
+                </div>
+
+                <!-- Cleaning Leaf Sparks Layer (Active in SCAN mode) -->
+                <div id="clean-particles" class="absolute inset-0 pointer-events-none hidden">
+                    <div class="leaf-particle left-12 bottom-8 text-sage"><i class="fa-solid fa-leaf text-sm"></i></div>
+                    <div class="leaf-particle left-1/2 bottom-12 text-butter" style="animation-delay: 0.4s"><i class="fa-solid fa-sparkles text-xs"></i></div>
+                    <div class="leaf-particle right-16 bottom-6 text-coral" style="animation-delay: 0.8s"><i class="fa-solid fa-leaf text-xs"></i></div>
+                </div>
+
+                <!-- MASTER SLOTH Mascot SVG (Fully Styled) -->
+                <div id="sloth-svg-container" class="relative z-10 w-44 h-44 cursor-pointer transition-transform duration-300 hover:scale-105" onclick="triggerSlothInteraction()">
+                    <svg id="sloth-svg" viewBox="0 0 240 240" class="w-full h-full drop-shadow-md">
+                        <defs>
+                            <!-- Fur Gradient -->
+                            <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A67C52"/>
+                                <stop offset="100%" stop-color="#785233"/>
+                            </linearGradient>
+                            <!-- Face Patch Gradient -->
+                            <linearGradient id="faceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#FFF5EA"/>
+                                <stop offset="100%" stop-color="#E8D5C4"/>
+                            </linearGradient>
+                            <!-- Hoodie Gradient -->
+                            <linearGradient id="hoodieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F4A295"/>
+                                <stop offset="100%" stop-color="#E98776"/>
+                            </linearGradient>
+                            <!-- Hat Gradient -->
+                            <linearGradient id="hatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#2D5E48"/>
+                                <stop offset="100%" stop-color="#1A382B"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Shadow beneath sloth -->
+                        <ellipse cx="120" cy="210" rx="45" ry="8" fill="#244C3A" opacity="0.15"/>
+
+                        <!-- SLOTH BODY & HOODIE -->
+                        <g id="sloth-body" class="anim-breathe" transform-origin="120 150">
+                            <!-- Body Base -->
+                            <path d="M85,130 C75,150 70,185 80,200 C90,210 150,210 160,200 C170,185 165,150 155,130 Z" fill="url(#furGrad)" />
+                            
+                            <!-- Pink Hoodie -->
+                            <path d="M82,132 C78,155 82,190 92,195 C110,200 130,200 148,195 C158,190 162,155 158,132 C145,125 95,125 82,132 Z" fill="url(#hoodieGrad)" />
+                            <!-- Hoodie Pocket -->
+                            <path d="M98,165 Q120,172 142,165 Q140,185 120,188 Q100,185 98,165 Z" fill="#DF7563" />
+                            <!-- Hoodie Strings -->
+                            <path d="M112,130 L110,150" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M128,130 L130,152" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                            <circle cx="110" cy="151" r="2" fill="#F2D77A"/>
+                            <circle cx="130" cy="153" r="2" fill="#F2D77A"/>
+                        </g>
+
+                        <!-- SLOTH HEAD & FACE -->
+                        <g id="sloth-head" transform-origin="120 100">
+                            <!-- Outer Fur Head -->
+                            <circle cx="120" cy="98" r="42" fill="url(#furGrad)" />
+                            
+                            <!-- Face Mask Patch -->
+                            <path d="M90,92 C88,75 102,68 120,68 C138,68 152,75 150,92 C150,112 138,122 120,122 C102,122 90,112 90,92 Z" fill="url(#faceGrad)" />
+                            
+                            <!-- Dark Eye Eye-patches -->
+                            <ellipse cx="103" cy="94" rx="12" ry="9" fill="#523924" transform="rotate(-8 103 94)"/>
+                            <ellipse cx="137" cy="94" rx="12" ry="9" fill="#523924" transform="rotate(8 137 94)"/>
+
+                            <!-- Eyes (Open vs Closed States managed by CSS classes) -->
+                            <g id="eyes-open" class="anim-eye-blink">
+                                <!-- Left Eye -->
+                                <circle cx="104" cy="94" r="6" fill="#1A110B"/>
+                                <circle cx="102" cy="92" r="2.2" fill="#FFFFFF"/>
+                                <circle cx="106" cy="96" r="0.9" fill="#FFFFFF"/>
+
+                                <!-- Right Eye -->
+                                <circle cx="136" cy="94" r="6" fill="#1A110B"/>
+                                <circle cx="134" cy="92" r="2.2" fill="#FFFFFF"/>
+                                <circle cx="138" cy="96" r="0.9" fill="#FFFFFF"/>
+                            </g>
+
+                            <!-- Eyes Closed (For Nap State) -->
+                            <g id="eyes-closed" class="hidden">
+                                <path d="M98,95 Q104,100 110,95" stroke="#3A2312" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                                <path d="M130,95 Q136,100 142,95" stroke="#3A2312" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            </g>
+
+                            <!-- Cute Nose -->
+                            <ellipse cx="120" cy="103" rx="5" ry="3.5" fill="#3D291A"/>
+                            <ellipse cx="119" cy="102" rx="1.8" ry="1" fill="#6E4D34"/>
+
+                            <!-- Sweet Smile -->
+                            <path d="M114,110 Q120,115 126,110" stroke="#3D291A" stroke-width="2" stroke-linecap="round" fill="none"/>
+                            <!-- Rosy Cheeks -->
+                            <circle cx="95" cy="104" r="5" fill="#E98776" opacity="0.35"/>
+                            <circle cx="145" cy="104" r="5" fill="#E98776" opacity="0.35"/>
+
+                            <!-- PINK HEADPHONES -->
+                            <g id="headphones">
+                                <!-- Band -->
+                                <path d="M80,90 C78,56 162,56 160,90" stroke="#F4A295" stroke-width="5" fill="none" stroke-linecap="round"/>
+                                <!-- Left Ear Cup -->
+                                <rect x="73" y="85" width="12" height="22" rx="6" fill="#E98776" stroke="#FFFFFF" stroke-width="1.5"/>
+                                <circle cx="79" cy="96" r="3" fill="#F2D77A"/>
+                                <!-- Right Ear Cup -->
+                                <rect x="155" y="85" width="12" height="22" rx="6" fill="#E98776" stroke="#FFFFFF" stroke-width="1.5"/>
+                                <circle cx="161" cy="96" r="3" fill="#F2D77A"/>
+                            </g>
+
+                            <!-- WIZARD HAT (Pointy, Leaf & Gold Star) -->
+                            <g id="wizard-hat">
+                                <!-- Hat Base Brim -->
+                                <path d="M72,68 C90,60 150,60 168,68 C175,71 160,78 120,78 C80,78 65,71 72,68 Z" fill="#1A382B"/>
+                                <!-- Hat Cone -->
+                                <path d="M82,66 C95,45 110,25 145,15 C132,35 142,50 158,66 Z" fill="url(#hatGrad)"/>
+                                <!-- Gold Star Pin & Leaves -->
+                                <path d="M125,52 Q120,45 128,42 Q132,49 125,52 Z" fill="#A8C8A0"/>
+                                <polygon points="120,56 122,50 128,50 123,47 125,41 120,44 115,41 117,47 112,50 118,50" fill="#F2D77A"/>
+                            </g>
+                        </g>
+
+                        <!-- MAGICAL BROOM PROP -->
+                        <g id="magical-broom" class="transition-transform duration-500" transform-origin="150 160">
+                            <!-- Broom Handle -->
+                            <path d="M70,195 L165,85" stroke="#785233" stroke-width="7" stroke-linecap="round"/>
+                            <path d="M70,195 L165,85" stroke="#A67C52" stroke-width="3" stroke-linecap="round"/>
+                            
+                            <!-- Golden / Leaf Bristles -->
+                            <path d="M68,193 L35,220 C30,225 45,232 55,225 L76,198 Z" fill="#F2D77A"/>
+                            <path d="M66,196 L40,228 C45,233 60,230 72,220 L74,198 Z" fill="#A8C8A0"/>
+                            <!-- Broom Ring Attachment -->
+                            <rect x="68" y="190" width="8" height="7" rx="2" fill="#E98776" transform="rotate(-45 68 190)"/>
+                            <!-- Hanging Leaf Charm -->
+                            <circle cx="140" cy="110" r="3" fill="#F2D77A"/>
+                            <path d="M140,113 Q136,120 142,123 Q145,117 140,113 Z" fill="#A8C8A0"/>
+                        </g>
+
+                        <!-- Sloth Arms & Paws Holding Broom -->
+                        <g id="sloth-arms">
+                            <!-- Left Paw -->
+                            <ellipse cx="108" cy="150" rx="7" ry="5" fill="#A67C52" transform="rotate(-20 108 150)"/>
+                            <!-- Right Paw -->
+                            <ellipse cx="140" cy="118" rx="7" ry="5" fill="#A67C52" transform="rotate(-20 140 118)"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Dynamic Scan Progress Bar (Only visible when Scanning) -->
+            <div id="scan-progress-box" class="hidden mt-1 px-4 py-2 bg-white/80 backdrop-blur rounded-2xl border border-sage/30 shadow-sm">
+                <div class="flex justify-between text-xs font-semibold text-forest mb-1">
+                    <span id="scan-status-text"><i class="fa-solid fa-broom animate-spin text-coral mr-1"></i> Sweeping clutter...</span>
+                    <span id="scan-percentage" class="font-bold text-coral">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-creamDark rounded-full overflow-hidden">
+                    <div id="scan-progress-fill" class="h-full bg-gradient-to-r from-sage via-butter to-coral transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP CONTENT VIEWS (SWITCHABLE TABS) -->
+        <main class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+            <!-- 1. HOME SCREEN -->
+            <section id="view-home" class="space-y-4">
+                <!-- Hero Tagline Box -->
+                <div class="paper-card rounded-3xl p-4 bg-gradient-to-br from-white to-sageLight/30 border border-sage/20 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-butter/60 text-forest text-[11px] font-bold tracking-wide uppercase mb-1">
+                            Cozy Companion AI
+                        </span>
+                        <h2 class="font-display font-bold text-xl text-forest leading-snug">
+                            "Your digital mess?<br/>I've got this."
+                        </h2>
+                        <p class="text-xs text-mutedText mt-1">Stay cozy. We'll sort the photo duplicates, promos, & clutter together.</p>
+                        
+                        <button onclick="startFullScan()" class="mt-3.5 w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2 active:scale-[0.98]">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Let's Tidy Up Together</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Storage Reclaim Summary Card -->
+                <div class="bg-forest text-white rounded-3xl p-4 shadow-cozy relative overflow-hidden flex items-center justify-between">
+                    <div class="space-y-1">
+                        <p class="text-[11px] font-medium text-sage uppercase tracking-wider">Cleanable Space Found</p>
+                        <div class="flex items-baseline space-x-1">
+                            <span class="text-3xl font-display font-extrabold text-butter">2.4</span>
+                            <span class="text-base font-bold text-cream">GB</span>
+                        </div>
+                        <p class="text-[11px] text-cream/80"><i class="fa-solid fa-circle-check text-sage mr-1"></i>Safe to review & sweep</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/10 flex flex-col items-center justify-center text-center p-1">
+                        <i class="fa-solid fa-leaf text-butter text-xl mb-0.5"></i>
+                        <span class="text-[9px] font-bold text-cream uppercase">432 Items</span>
+                    </div>
+                </div>
+
+                <!-- Three Cleanup Categories -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-mutedText uppercase tracking-wider px-1">Clutter Categories</h3>
+                    
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <!-- Photos Category -->
+                        <div onclick="switchTab('photos')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-coralLight text-coral flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-images"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">Photos & Screenshots</h4>
+                                    <p class="text-xs text-mutedText">Duplicates, memes & heavy greetings</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-coral bg-coralLight px-2 py-0.5 rounded-full">1.8 GB</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+
+                        <!-- Emails Category -->
+                        <div onclick="switchTab('inbox')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-sageLight text-forest flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-envelope-open-text"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">Email Inbox</h4>
+                                    <p class="text-xs text-mutedText">Promotions, newsletters & spam</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-forest bg-sageLight px-2 py-0.5 rounded-full">480 MB</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+
+                        <!-- Messages Category -->
+                        <div onclick="switchTab('inbox', 'sms')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">SMS & Messages</h4>
+                                    <p class="text-xs text-mutedText">Old verification codes & promo texts</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-amber-700 bg-amber-100/60 px-2 py-0.5 rounded-full">120 MB</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Banner Footer -->
+                <div class="p-3 rounded-2xl bg-creamDark/60 border border-sage/20 flex items-center space-x-2.5 text-xs text-mutedText">
+                    <i class="fa-solid fa-user-shield text-forest text-base"></i>
+                    <span>Your files never leave this phone. You approve every sweep.</span>
+                </div>
+            </section>
+
+            <!-- 2. PHOTOS CLEAN SCREEN -->
+            <section id="view-photos" class="space-y-3.5 hidden">
+                <!-- Safety Rule Banner -->
+                <div class="p-3 rounded-2xl bg-sageLight/70 border border-sage/40 flex items-center space-x-2 text-xs text-forest font-medium">
+                    <i class="fa-solid fa-shield-cat text-base text-forest"></i>
+                    <span>Important notes, docs & study photos are automatically tagged <strong>"Keep Safe"</strong>.</span>
+                </div>
+
+                <!-- Filter Category Pills -->
+                <div class="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+                    <button onclick="filterPhotos('all')" class="photo-filter-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-forest text-white shadow-sm whitespace-nowrap">All (64)</button>
+                    <button onclick="filterPhotos('dup')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">Duplicates (8)</button>
+                    <button onclick="filterPhotos('greet')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">Greetings (12)</button>
+                    <button onclick="filterPhotos('meme')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">Memes (15)</button>
+                    <button onclick="filterPhotos('doc')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">Notes/Docs (5)</button>
+                </div>
+
+                <!-- Media Item Grid -->
+                <div class="grid grid-cols-2 gap-2.5" id="photo-grid">
+                    <!-- Cards will be populated by JavaScript -->
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="switchTab('review')" class="w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Proceed to Review Selected Items</span>
+                </button>
+            </section>
+
+            <!-- 3. INBOX & MESSAGES SCREEN -->
+            <section id="view-inbox" class="space-y-3.5 hidden">
+                <!-- Toggle Switch for Email vs SMS -->
+                <div class="bg-creamDark/80 p-1 rounded-2xl flex border border-sage/20">
+                    <button id="tab-btn-email" onclick="toggleInboxSubTab('email')" class="flex-1 py-2 rounded-xl text-xs font-bold text-forest bg-white shadow-sm transition">
+                        <i class="fa-solid fa-envelope mr-1"></i> Email Clean
+                    </button>
+                    <button id="tab-btn-sms" onclick="toggleInboxSubTab('sms')" class="flex-1 py-2 rounded-xl text-xs font-bold text-mutedText hover:text-forest transition">
+                        <i class="fa-solid fa-message mr-1"></i> SMS & Messages
+                    </button>
+                </div>
+
+                <!-- EMAIL PANEL -->
+                <div id="panel-email" class="space-y-3">
+                    <div class="flex items-center justify-between text-xs font-bold text-forest px-1">
+                        <span>Promotional & Newsletter Clutter</span>
+                        <span class="text-coral">3 Unsubscribe Candidates</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <!-- Email Card 1 -->
+                        <div class="paper-card rounded-2xl p-3.5 flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" checked onchange="updateReviewCount()" class="item-checkbox mt-1 w-4 h-4 rounded text-coral focus:ring-coral">
+                                <div>
+                                    <div class="flex items-center space-x-1.5">
+                                        <h4 class="font-bold text-xs text-forest">Mega Store Daily Deals</h4>
+                                        <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold">Promo</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-darkText mt-0.5">🔥 70% Off Ends Tonight! Don't miss out...</p>
+                                    <p class="text-[10px] text-mutedText mt-1">Received 14 identical emails this month</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-mutedText">2.4 MB</span>
+                        </div>
+
+                        <!-- Email Card 2 -->
+                        <div class="paper-card rounded-2xl p-3.5 flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" checked onchange="updateReviewCount()" class="item-checkbox mt-1 w-4 h-4 rounded text-coral focus:ring-coral">
+                                <div>
+                                    <div class="flex items-center space-x-1.5">
+                                        <h4 class="font-bold text-xs text-forest">Weekly Tech Digest Digest</h4>
+                                        <span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-semibold">Newsletter</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-darkText mt-0.5">Top 10 AI tools you shouldn't miss this week</p>
+                                    <p class="text-[10px] text-mutedText mt-1">Unopened for 6 months</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-mutedText">1.1 MB</span>
+                        </div>
+
+                        <!-- Email Card 3 -->
+                        <div class="paper-card rounded-2xl p-3.5 flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" onchange="updateReviewCount()" class="item-checkbox mt-1 w-4 h-4 rounded text-coral focus:ring-coral">
+                                <div>
+                                    <div class="flex items-center space-x-1.5">
+                                        <h4 class="font-bold text-xs text-forest">Flight Booking Confirmation</h4>
+                                        <span class="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">Keep Safe</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-darkText mt-0.5">Your e-ticket for flight #6E-204</p>
+                                    <p class="text-[10px] text-emerald-700 font-semibold mt-1">Important travel record</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-mutedText">450 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMS PANEL -->
+                <div id="panel-sms" class="space-y-3 hidden">
+                    <!-- Honest Permission Banner -->
+                    <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                        <div class="font-bold flex items-center space-x-1">
+                            <i class="fa-solid fa-circle-info text-amber-600"></i>
+                            <span>OS Permission Transparency Notice</span>
+                        </div>
+                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                            iOS/Android OS privacy restrictions prevent automatic SMS deletion. LazySloth identifies potential spam codes so you can sweep them in 1 tap safely.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <!-- SMS Item 1 -->
+                        <div class="paper-card rounded-2xl p-3.5 flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" checked onchange="updateReviewCount()" class="item-checkbox mt-1 w-4 h-4 rounded text-coral">
+                                <div>
+                                    <h4 class="font-bold text-xs text-forest">OTP Verification Code #89201</h4>
+                                    <p class="text-[11px] text-mutedText mt-0.5">Your code expired 14 days ago.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold font-mono text-coral bg-coralLight px-2 py-0.5 rounded">EXPIRED</span>
+                        </div>
+
+                        <!-- SMS Item 2 -->
+                        <div class="paper-card rounded-2xl p-3.5 flex items-start justify-between">
+                            <div class="flex items-start space-x-3">
+                                <input type="checkbox" checked onchange="updateReviewCount()" class="item-checkbox mt-1 w-4 h-4 rounded text-coral">
+                                <div>
+                                    <h4 class="font-bold text-xs text-forest">Flash Sale Promo SMS</h4>
+                                    <p class="text-[11px] text-mutedText mt-0.5">"Get 50% cash back on your next ride..."</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold text-mutedText">Spam</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. REVIEW & CONFIRMATION SCREEN -->
+            <section id="view-review" class="space-y-3.5 hidden">
+                <!-- Header Banner -->
+                <div class="paper-card rounded-2xl p-3.5 bg-gradient-to-r from-sageLight/60 to-white flex items-center justify-between border border-sage/30">
+                    <div>
+                        <h3 class="font-bold text-sm text-forest">Review Before Sweeping</h3>
+                        <p class="text-xs text-mutedText">Nothing is deleted until you confirm.</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="selected-count-badge" class="font-display font-bold text-lg text-coral">12 Items</span>
+                        <p id="selected-size-badge" class="text-[10px] font-bold text-forest uppercase">1.4 GB Total</p>
+                    </div>
+                </div>
+
+                <!-- Review Items List -->
+                <div id="review-items-list" class="space-y-2">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Action Button with Double Check -->
+                <div class="pt-2">
+                    <button onclick="openDeleteConfirmationModal()" class="w-full py-3.5 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-broom text-butter"></i>
+                        <span>Sweep Away Selected Items</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS & PRIVACY SCREEN -->
+            <section id="view-settings" class="space-y-4 hidden">
+                <div class="paper-card rounded-3xl p-4 space-y-4">
+                    <h3 class="font-display font-bold text-base text-forest border-b border-sage/20 pb-2">Privacy & Permissions</h3>
+                    
+                    <!-- Permission Toggles -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Photos Access</p>
+                                <p class="text-[10px] text-mutedText">Read-only local duplicate scanning</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Granted</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Email Inbox Integration</p>
+                                <p class="text-[10px] text-mutedText">IMAP/OAuth local header parsing</p>
+                            </div>
+                            <span class="text-xs font-bold text-forest bg-sageLight px-2.5 py-1 rounded-full">Connected</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Local AI On-Device Model</p>
+                                <p class="text-[10px] text-mutedText">MobileNet-V3 quantized (Zero Cloud)</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App Preferences -->
+                <div class="paper-card rounded-3xl p-4 space-y-3">
+                    <h3 class="font-display font-bold text-base text-forest border-b border-sage/20 pb-2">Preferences</h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-forest">Reduced Motion Accessibility</span>
+                        <input type="checkbox" id="motion-toggle" class="w-4 h-4 rounded text-forest focus:ring-forest">
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-forest">Haptic Vibration Feedback</span>
+                        <input type="checkbox" checked class="w-4 h-4 rounded text-forest focus:ring-forest">
+                    </div>
+                </div>
+
+                <!-- Legal / Tagline -->
+                <div class="text-center text-xs text-mutedText space-y-1 pt-2">
+                    <p class="font-display font-semibold text-forest">LazySloth Cleaner v2.4.0</p>
+                    <p>"Stay cozy. We'll sort the clutter together."</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- CONFIRMATION MODAL DIALOG (Safety Guardrail) -->
+        <div id="confirm-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden transition-opacity">
+            <div class="bg-white rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-2xl border border-sage/30 text-center animate-bounce-short">
+                <div class="w-12 h-12 rounded-full bg-coralLight text-coral flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-broom"></i>
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-forest">Ready to Sweep?</h3>
+                    <p class="text-xs text-mutedText mt-1">
+                        You are about to permanently clear <strong id="modal-item-count" class="text-coral">12 items</strong> freeing <strong id="modal-item-size" class="text-forest">1.4 GB</strong>.
+                    </p>
+                </div>
+                <div class="bg-cream p-2.5 rounded-2xl text-[11px] text-forest font-medium border border-sage/20">
+                    <i class="fa-solid fa-lock text-emerald-600 mr-1"></i> No items were automatically selected.
+                </div>
+                <div class="space-y-2">
+                    <button onclick="executeFinalSweep()" class="w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-xs rounded-xl shadow-btn transition">
+                        Yes, Confirm & Sweep Now
+                    </button>
+                    <button onclick="closeDeleteConfirmationModal()" class="w-full py-2.5 bg-creamDark text-forest font-bold text-xs rounded-xl hover:bg-cream transition">
+                        Keep Everything Safe
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="bg-white border-t border-sage/20 px-3 py-2 z-30 flex items-center justify-around flex-shrink-0">
+            <!-- Home Tab -->
+            <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center space-y-1 text-forest">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+
+            <!-- Photos Tab -->
+            <button onclick="switchTab('photos')" id="nav-photos" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-images text-lg"></i>
+                <span class="text-[10px] font-bold">Photos</span>
+            </button>
+
+            <!-- Inbox Tab -->
+            <button onclick="switchTab('inbox')" id="nav-inbox" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-envelope text-lg"></i>
+                <span class="text-[10px] font-bold">Inbox</span>
+            </button>
+
+            <!-- Review Tab -->
+            <button onclick="switchTab('review')" id="nav-review" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest relative">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-bold">Review</span>
+                <span class="absolute top-0 right-3 w-2 h-2 rounded-full bg-coral"></span>
+            </button>
+
+            <!-- Settings Tab -->
+            <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-bold">Settings</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC & MASCOT STATE CONTROLLER -->
+    <script>
+        // Sample Mock Photo Data
+        const photoItems = [
+            { id: 1, type: 'dup', title: 'Sunset Duplicate #1', reason: 'Exact duplicate image', size: '4.2 MB', img: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=150&auto=format&fit=crop&q=60', keepSafe: false },
+            { id: 2, type: 'dup', title: 'Sunset Duplicate #2', reason: 'Similar photo sequence', size: '4.1 MB', img: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=150&auto=format&fit=crop&q=60', keepSafe: false },
+            { id: 3, type: 'greet', title: 'Good Morning WhatsApp', reason: 'Forwarded greeting picture', size: '1.8 MB', img: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=150&auto=format&fit=crop&q=60', keepSafe: false },
+            { id: 4, type: 'doc', title: 'Math Lecture Notes', reason: 'Whiteboard & study text', size: '3.5 MB', img: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=150&auto=format&fit=crop&q=60', keepSafe: true },
+            { id: 5, type: 'meme', title: 'Cat Meme Download', reason: 'Downloaded social meme', size: '850 KB', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&auto=format&fit=crop&q=60', keepSafe: false },
+            { id: 6, type: 'doc', title: 'Electricity Bill Receipt', reason: 'Important document', size: '1.2 MB', img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=150&auto=format&fit=crop&q=60', keepSafe: true },
+        ];
+
+        // Speech Speeches for Sloth States
+        const slothSpeeches = {
+            home: "Oh, hiiii! Ready to make a little room? Stay cozy, I'll sweep!",
+            photos: "I found a few duplicate sunset photos! I've kept your study notes safe though.",
+            inbox: "Let's sweep away those 14 daily promotional deals!",
+            review: "Let me double-check these before we sweep them away!",
+            settings: "All processing happens 100% on this phone. Your photos stay private!",
+            scanning: "Sweeping digital dust particles... gently, gently...",
+            celebrate: "Yayyy! A little less clutter! Time for a cozy nap."
+        };
+
+        let currentTab = 'home';
+        let isScanning = false;
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            renderPhotos('all');
+            renderReviewItems();
+            setSlothState('PEEK');
+        };
+
+        // Tab Switching Engine
+        function switchTab(tabId, subTab = null) {
+            if (isScanning) return;
+
+            currentTab = tabId;
+
+            // Hide all views
+            ['home', 'photos', 'inbox', 'settings', 'review'].forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            // Show selected view
+            const activeView = document.getElementById(`view-${tabId}`);
+            if (activeView) activeView.classList.remove('hidden');
+
+            // Update Navigation Button States
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-forest');
+                btn.classList.add('text-mutedText');
+            });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-mutedText');
+                activeNav.classList.add('text-forest');
+            }
+
+            // Handle Inbox Sub-tab if specified
+            if (tabId === 'inbox' && subTab) {
+                toggleInboxSubTab(subTab);
+            }
+
+            // Update Mascot Speech Bubble and Pose State
+            updateMascotForTab(tabId);
+        }
+
+        // Mascot State Manager
+        function setSlothState(state) {
+            const svgEl = document.getElementById('sloth-svg-container');
+            const eyesOpen = document.getElementById('eyes-open');
+            const eyesClosed = document.getElementById('eyes-closed');
+            const broom = document.getElementById('magical-broom');
+            const sleepParticles = document.getElementById('sleep-particles');
+            const cleanParticles = document.getElementById('clean-particles');
+
+            // Reset classes
+            svgEl.className = "relative z-10 w-44 h-44 cursor-pointer transition-transform duration-300";
+            broom.className = "transition-transform duration-500";
+            sleepParticles.classList.add('hidden');
+            cleanParticles.classList.add('hidden');
+            eyesOpen.classList.remove('hidden');
+            eyesClosed.classList.add('hidden');
+
+            switch(state) {
+                case 'PEEK':
+                    svgEl.classList.add('anim-float');
+                    break;
+                case 'NAP':
+                    eyesOpen.classList.add('hidden');
+                    eyesClosed.classList.remove('hidden');
+                    sleepParticles.classList.remove('hidden');
+                    broom.style.transform = "rotate(-25deg) translate(-10px, 15px)";
+                    break;
+                case 'WAKE':
+                    svgEl.classList.add('anim-hop');
+                    setTimeout(() => svgEl.classList.remove('anim-hop'), 800);
+                    break;
+                case 'CLEAN':
+                    broom.classList.add('anim-sweep');
+                    cleanParticles.classList.remove('hidden');
+                    break;
+                case 'CELEBRATE':
+                    svgEl.classList.add('anim-hop');
+                    break;
+            }
+        }
+
+        function updateMascotForTab(tabId) {
+            const speechText = document.getElementById('sloth-speech');
+            speechText.innerText = slothSpeeches[tabId] || slothSpeeches.home;
+
+            if (tabId === 'home') setSlothState('NAP');
+            else if (tabId === 'photos') setSlothState('WAKE');
+            else if (tabId === 'inbox') setSlothState('WAKE');
+            else if (tabId === 'review') setSlothState('PEEK');
+            else if (tabId === 'settings') setSlothState('PEEK');
+        }
+
+        function triggerSlothInteraction() {
+            const speechText = document.getElementById('sloth-speech');
+            setSlothState('WAKE');
+            speechText.innerText = "Yawn... I'm awake! Ready to sweep whenever you are!";
+            setTimeout(() => {
+                if (currentTab === 'home') setSlothState('NAP');
+            }, 3000);
+        }
+
+        // Full Interactive Scan Simulator
+        function startFullScan() {
+            if (isScanning) return;
+            isScanning = true;
+
+            const progressBox = document.getElementById('scan-progress-box');
+            const progressFill = document.getElementById('scan-progress-fill');
+            const progressPercent = document.getElementById('scan-percentage');
+            const speechText = document.getElementById('sloth-speech');
+
+            progressBox.classList.remove('hidden');
+            setSlothState('CLEAN');
+            speechText.innerText = slothSpeeches.scanning;
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                progressFill.style.width = `${progress}%`;
+                progressPercent.innerText = `${progress}%`;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressBox.classList.add('hidden');
+                        isScanning = false;
+                        setSlothState('CELEBRATE');
+                        speechText.innerText = slothSpeeches.celebrate;
+                        switchTab('photos');
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        // Photo Grid Filtering & Rendering
+        function filterPhotos(category) {
+            document.querySelectorAll('.photo-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-forest', 'text-white');
+                btn.classList.add('bg-white', 'text-mutedText');
+            });
+            event.currentTarget.classList.remove('bg-white', 'text-mutedText');
+            event.currentTarget.classList.add('bg-forest', 'text-white');
+
+            renderPhotos(category);
+        }
+
+        function renderPhotos(category) {
+            const grid = document.getElementById('photo-grid');
+            grid.innerHTML = '';
+
+            const items = category === 'all' ? photoItems : photoItems.filter(p => p.type === category);
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "paper-card rounded-2xl overflow-hidden border border-sage/20 relative flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="relative h-28 w-full bg-slate-100">
+                        <img src="${item.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x120/A8C8A0/244C3A?text=Photo'">
+                        <span class="absolute top-2 left-2 text-[9px] font-bold ${item.keepSafe ? 'bg-emerald-600 text-white' : 'bg-white/90 text-forest'} px-2 py-0.5 rounded-full shadow-sm">
+                            ${item.keepSafe ? '<i class="fa-solid fa-shield mr-1"></i>Keep Safe' : item.reason}
+                        </span>
+                        <input type="checkbox" ${item.keepSafe ? '' : 'checked'} onchange="updateReviewCount()" class="item-checkbox absolute top-2 right-2 w-4 h-4 rounded text-coral focus:ring-coral">
+                    </div>
+                    <div class="p-2.5 bg-white">
+                        <h4 class="font-bold text-xs text-forest truncate">${item.title}</h4>
+                        <p class="text-[10px] text-mutedText">${item.size}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Inbox Sub-Tab Switcher
+        function toggleInboxSubTab(type) {
+            const btnEmail = document.getElementById('tab-btn-email');
+            const btnSms = document.getElementById('tab-btn-sms');
+            const panelEmail = document.getElementById('panel-email');
+            const panelSms = document.getElementById('panel-sms');
+
+            if (type === 'email') {
+                btnEmail.className = "flex-1 py-2 rounded-xl text-xs font-bold text-forest bg-white shadow-sm transition";
+                btnSms.className = "flex-1 py-2 rounded-xl text-xs font-bold text-mutedText hover:text-forest transition";
+                panelEmail.classList.remove('hidden');
+                panelSms.classList.add('hidden');
+            } else {
+                btnSms.className = "flex-1 py-2 rounded-xl text-xs font-bold text-forest bg-white shadow-sm transition";
+                btnEmail.className = "flex-1 py-2 rounded-xl text-xs font-bold text-mutedText hover:text-forest transition";
+                panelSms.classList.remove('hidden');
+                panelEmail.classList.add('hidden');
+            }
+        }
+
+        // Review Items Dynamic Populator
+        function renderReviewItems() {
+            const list = document.getElementById('review-items-list');
+            list.innerHTML = `
+                <div class="paper-card rounded-2xl p-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-copy text-coral text-base"></i>
+                        <div>
+                            <h4 class="font-bold text-xs text-forest">8 Duplicate Photos</h4>
+                            <p class="text-[10px] text-mutedText">Identical sunset & burst captures</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-forest">1.1 GB</span>
+                </div>
+                <div class="paper-card rounded-2xl p-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-envelope-open-text text-amber-600 text-base"></i>
+                        <div>
+                            <h4 class="font-bold text-xs text-forest">14 Promo Emails</h4>
+                            <p class="text-[10px] text-mutedText">Daily marketing newsletters</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-forest">280 MB</span>
+                </div>
+            `;
+        }
+
+        function updateReviewCount() {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            const badge = document.getElementById('selected-count-badge');
+            if (badge) badge.innerText = `${checkboxes.length} Items`;
+        }
+
+        // Modal Confirmation Guardrails
+        function openDeleteConfirmationModal() {
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteConfirmationModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        function executeFinalSweep() {
+            closeDeleteConfirmationModal();
+            setSlothState('CELEBRATE');
+            const speechText = document.getElementById('sloth-speech');
+            speechText.innerText = "Swept away! Your phone feels 1.4 GB lighter!";
+            
+            setTimeout(() => {
+                switchTab('home');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

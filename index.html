@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LazySloth Cleaner - Stay Cozy</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#F8F6F0',
+                        creamDark: '#EFECE1',
+                        forest: '#244C3A',
+                        forestLight: '#2D5E48',
+                        sage: '#A8C8A0',
+                        sageLight: '#E3EFE0',
+                        butter: '#F2D77A',
+                        coral: '#E98776',
+                        coralLight: '#FCEBE8',
+                        darkText: '#292D29',
+                        mutedText: '#777B73',
+                        cardBg: '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Fredoka', 'cursive'],
+                    },
+                    boxShadow: {
+                        'cozy': '0 8px 30px rgba(36, 76, 58, 0.08)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.04)',
+                        'btn': '0 6px 18px rgba(233, 135, 118, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS & Animation Engine -->
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="flex items-center justify-center min-h-screen bg-slate-900">
+
+    <!-- MAIN APP CONTAINER (Mobile Frame Viewport) -->
+    <div id="app" class="app-shell w-full bg-cream text-darkText flex flex-col relative overflow-hidden shadow-2xl md:rounded-[40px] border-4 border-slate-800/20">
+        
+        <!-- STATUS / TOP BAR -->
+        <header class="px-5 pt-4 pb-2 bg-cream/90 backdrop-blur-md z-30 flex items-center justify-between border-b border-sage/10">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-forest flex items-center justify-center text-butter text-xs font-bold shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg text-forest leading-tight tracking-wide">LazySloth Cleaner</h1>
+                    <div class="flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-semibold text-mutedText tracking-wider uppercase">Local Mode • 0 Cloud Uploads</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <div class="bg-sageLight text-forest px-2.5 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 border border-sage/30">
+                    <i class="fa-solid fa-shield-halved text-xs text-forest"></i>
+                    <span id="privacy-badge">100% On-Device</span>
+                </div>
+                <button onclick="LazySlothApp.switchTab('settings')" aria-label="Open Settings" class="w-8 h-8 rounded-full bg-white hover:bg-sageLight flex items-center justify-center text-forest transition shadow-sm border border-sage/20">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC MASCOT HEADER / HERO PANEL -->
+        <div id="mascot-stage" class="relative px-5 pt-2 pb-1 bg-gradient-to-b from-cream via-cream to-creamDark/40 transition-all duration-500 border-b border-sage/10 flex-shrink-0">
+            
+            <!-- Speech Bubble -->
+            <div class="mb-2 transition-all duration-300">
+                <div class="speech-bubble px-4 py-2.5 max-w-[92%] mx-auto flex items-start space-x-2">
+                    <i class="fa-solid fa-quote-left text-sage text-xs mt-0.5 opacity-60"></i>
+                    <p id="sloth-speech" class="text-xs font-medium text-forest leading-snug">
+                        Oh, hiiii! Ready to make a little room? Stay cozy, I'll sweep!
+                    </p>
+                </div>
+            </div>
+
+            <!-- SVG Mascot Canvas & Branch Area -->
+            <div class="relative h-44 w-full flex items-center justify-center overflow-visible">
+                
+                <!-- Tree Branch Backdrop -->
+                <svg class="absolute bottom-1 w-full h-12 text-forest/20" viewBox="0 0 300 40" fill="none" preserveAspectRatio="none">
+                    <path d="M0,25 C50,15 120,35 200,20 C250,10 280,25 300,20 L300,40 L0,40 Z" fill="#244C3A" opacity="0.15"/>
+                    <path d="M10,22 Q80,32 170,18 T300,18" stroke="#244C3A" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+                    <!-- Leaves on branch -->
+                    <path d="M40,18 Q30,8 45,5 Q55,12 40,18 Z" fill="#A8C8A0"/>
+                    <path d="M180,15 Q170,5 185,2 Q195,9 180,15 Z" fill="#A8C8A0"/>
+                    <path d="M260,16 Q250,6 265,3 Q275,10 260,16 Z" fill="#A8C8A0"/>
+                </svg>
+
+                <!-- Sleeping Z's Particle Layer (Active in NAP mode) -->
+                <div id="sleep-particles" class="absolute right-16 top-4 hidden pointer-events-none">
+                    <span class="z-particle-1 absolute text-forest font-display font-bold text-lg">Z</span>
+                    <span class="z-particle-2 absolute text-forest/70 font-display font-bold text-base -top-3 left-3">z</span>
+                    <span class="z-particle-3 absolute text-forest/40 font-display font-bold text-xs -top-6 left-6">z</span>
+                </div>
+
+                <!-- Cleaning Leaf Sparks Layer (Active in SCAN / CELEBRATE mode) -->
+                <div id="clean-particles" class="absolute inset-0 pointer-events-none hidden">
+                    <div class="leaf-particle left-12 bottom-8 text-sage"><i class="fa-solid fa-leaf text-sm"></i></div>
+                    <div class="leaf-particle left-1/2 bottom-12 text-butter" style="animation-delay: 0.4s"><i class="fa-solid fa-sparkles text-xs"></i></div>
+                    <div class="leaf-particle right-16 bottom-6 text-coral" style="animation-delay: 0.8s"><i class="fa-solid fa-leaf text-xs"></i></div>
+                </div>
+
+                <!-- MASTER SLOTH Mascot SVG (Fully Preserved Original Artwork) -->
+                <div id="sloth-svg-container" class="relative z-10 w-44 h-44 cursor-pointer transition-transform duration-300 hover:scale-105" onclick="LazySlothApp.triggerSlothInteraction()" title="Click me to wake up!">
+                    <svg id="sloth-svg" viewBox="0 0 240 240" class="w-full h-full drop-shadow-md">
+                        <defs>
+                            <!-- Fur Gradient -->
+                            <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A67C52"/>
+                                <stop offset="100%" stop-color="#785233"/>
+                            </linearGradient>
+                            <!-- Face Patch Gradient -->
+                            <linearGradient id="faceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#FFF5EA"/>
+                                <stop offset="100%" stop-color="#E8D5C4"/>
+                            </linearGradient>
+                            <!-- Hoodie Gradient -->
+                            <linearGradient id="hoodieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F4A295"/>
+                                <stop offset="100%" stop-color="#E98776"/>
+                            </linearGradient>
+                            <!-- Hat Gradient -->
+                            <linearGradient id="hatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#2D5E48"/>
+                                <stop offset="100%" stop-color="#1A382B"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Shadow beneath sloth -->
+                        <ellipse cx="120" cy="210" rx="45" ry="8" fill="#244C3A" opacity="0.15"/>
+
+                        <!-- SLOTH BODY & HOODIE -->
+                        <g id="sloth-body" class="anim-breathe" transform-origin="120 150">
+                            <!-- Body Base -->
+                            <path d="M85,130 C75,150 70,185 80,200 C90,210 150,210 160,200 C170,185 165,150 155,130 Z" fill="url(#furGrad)" />
+                            
+                            <!-- Pink Hoodie -->
+                            <path d="M82,132 C78,155 82,190 92,195 C110,200 130,200 148,195 C158,190 162,155 158,132 C145,125 95,125 82,132 Z" fill="url(#hoodieGrad)" />
+                            <!-- Hoodie Pocket -->
+                            <path d="M98,165 Q120,172 142,165 Q140,185 120,188 Q100,185 98,165 Z" fill="#DF7563" />
+                            <!-- Hoodie Strings -->
+                            <path d="M112,130 L110,150" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M128,130 L130,152" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                            <circle cx="110" cy="151" r="2" fill="#F2D77A"/>
+                            <circle cx="130" cy="153" r="2" fill="#F2D77A"/>
+                        </g>
+
+                        <!-- SLOTH HEAD & FACE -->
+                        <g id="sloth-head" transform-origin="120 100">
+                            <!-- Outer Fur Head -->
+                            <circle cx="120" cy="98" r="42" fill="url(#furGrad)" />
+                            
+                            <!-- Face Mask Patch -->
+                            <path d="M90,92 C88,75 102,68 120,68 C138,68 152,75 150,92 C150,112 138,122 120,122 C102,122 90,112 90,92 Z" fill="url(#faceGrad)" />
+                            
+                            <!-- Dark Eye Eye-patches -->
+                            <ellipse cx="103" cy="94" rx="12" ry="9" fill="#523924" transform="rotate(-8 103 94)"/>
+                            <ellipse cx="137" cy="94" rx="12" ry="9" fill="#523924" transform="rotate(8 137 94)"/>
+
+                            <!-- Eyes (Open vs Closed States managed by CSS classes) -->
+                            <g id="eyes-open" class="anim-eye-blink">
+                                <!-- Left Eye -->
+                                <circle cx="104" cy="94" r="6" fill="#1A110B"/>
+                                <circle cx="102" cy="92" r="2.2" fill="#FFFFFF"/>
+                                <circle cx="106" cy="96" r="0.9" fill="#FFFFFF"/>
+
+                                <!-- Right Eye -->
+                                <circle cx="136" cy="94" r="6" fill="#1A110B"/>
+                                <circle cx="134" cy="92" r="2.2" fill="#FFFFFF"/>
+                                <circle cx="138" cy="96" r="0.9" fill="#FFFFFF"/>
+                            </g>
+
+                            <!-- Eyes Closed (For Nap State) -->
+                            <g id="eyes-closed" class="hidden">
+                                <path d="M98,95 Q104,100 110,95" stroke="#3A2312" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                                <path d="M130,95 Q136,100 142,95" stroke="#3A2312" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                            </g>
+
+                            <!-- Cute Nose -->
+                            <ellipse cx="120" cy="103" rx="5" ry="3.5" fill="#3D291A"/>
+                            <ellipse cx="119" cy="102" rx="1.8" ry="1" fill="#6E4D34"/>
+
+                            <!-- Sweet Smile -->
+                            <path d="M114,110 Q120,115 126,110" stroke="#3D291A" stroke-width="2" stroke-linecap="round" fill="none"/>
+                            <!-- Rosy Cheeks -->
+                            <circle cx="95" cy="104" r="5" fill="#E98776" opacity="0.35"/>
+                            <circle cx="145" cy="104" r="5" fill="#E98776" opacity="0.35"/>
+
+                            <!-- PINK HEADPHONES -->
+                            <g id="headphones">
+                                <!-- Band -->
+                                <path d="M80,90 C78,56 162,56 160,90" stroke="#F4A295" stroke-width="5" fill="none" stroke-linecap="round"/>
+                                <!-- Left Ear Cup -->
+                                <rect x="73" y="85" width="12" height="22" rx="6" fill="#E98776" stroke="#FFFFFF" stroke-width="1.5"/>
+                                <circle cx="79" cy="96" r="3" fill="#F2D77A"/>
+                                <!-- Right Ear Cup -->
+                                <rect x="155" y="85" width="12" height="22" rx="6" fill="#E98776" stroke="#FFFFFF" stroke-width="1.5"/>
+                                <circle cx="161" cy="96" r="3" fill="#F2D77A"/>
+                            </g>
+
+                            <!-- WIZARD HAT (Pointy, Leaf & Gold Star) -->
+                            <g id="wizard-hat">
+                                <!-- Hat Base Brim -->
+                                <path d="M72,68 C90,60 150,60 168,68 C175,71 160,78 120,78 C80,78 65,71 72,68 Z" fill="#1A382B"/>
+                                <!-- Hat Cone -->
+                                <path d="M82,66 C95,45 110,25 145,15 C132,35 142,50 158,66 Z" fill="url(#hatGrad)"/>
+                                <!-- Gold Star Pin & Leaves -->
+                                <path d="M125,52 Q120,45 128,42 Q132,49 125,52 Z" fill="#A8C8A0"/>
+                                <polygon points="120,56 122,50 128,50 123,47 125,41 120,44 115,41 117,47 112,50 118,50" fill="#F2D77A"/>
+                            </g>
+                        </g>
+
+                        <!-- MAGICAL BROOM PROP -->
+                        <g id="magical-broom" class="transition-transform duration-500" transform-origin="150 160">
+                            <!-- Broom Handle -->
+                            <path d="M70,195 L165,85" stroke="#785233" stroke-width="7" stroke-linecap="round"/>
+                            <path d="M70,195 L165,85" stroke="#A67C52" stroke-width="3" stroke-linecap="round"/>
+                            
+                            <!-- Golden / Leaf Bristles -->
+                            <path d="M68,193 L35,220 C30,225 45,232 55,225 L76,198 Z" fill="#F2D77A"/>
+                            <path d="M66,196 L40,228 C45,233 60,230 72,220 L74,198 Z" fill="#A8C8A0"/>
+                            <!-- Broom Ring Attachment -->
+                            <rect x="68" y="190" width="8" height="7" rx="2" fill="#E98776" transform="rotate(-45 68 190)"/>
+                            <!-- Hanging Leaf Charm -->
+                            <circle cx="140" cy="110" r="3" fill="#F2D77A"/>
+                            <path d="M140,113 Q136,120 142,123 Q145,117 140,113 Z" fill="#A8C8A0"/>
+                        </g>
+
+                        <!-- Sloth Arms & Paws Holding Broom -->
+                        <g id="sloth-arms">
+                            <!-- Left Paw -->
+                            <ellipse cx="108" cy="150" rx="7" ry="5" fill="#A67C52" transform="rotate(-20 108 150)"/>
+                            <!-- Right Paw -->
+                            <ellipse cx="140" cy="118" rx="7" ry="5" fill="#A67C52" transform="rotate(-20 140 118)"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Dynamic Scan Progress Bar (Active when Processing/Hashing) -->
+            <div id="scan-progress-box" class="hidden mt-1 px-4 py-2 bg-white/80 backdrop-blur rounded-2xl border border-sage/30 shadow-sm">
+                <div class="flex justify-between text-xs font-semibold text-forest mb-1">
+                    <span id="scan-status-text"><i class="fa-solid fa-broom animate-spin text-coral mr-1"></i> Calculating SHA-256 digests...</span>
+                    <span id="scan-percentage" class="font-bold text-coral">0%</span>
+                </div>
+                <div class="w-full h-2.5 bg-creamDark rounded-full overflow-hidden">
+                    <div id="scan-progress-fill" class="h-full bg-gradient-to-r from-sage via-butter to-coral transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP CONTENT VIEWS (SWITCHABLE TABS) -->
+        <main class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+            <!-- 1. HOME SCREEN -->
+            <section id="view-home" class="space-y-4">
+                <!-- Hero Tagline Box -->
+                <div class="paper-card rounded-3xl p-4 bg-gradient-to-br from-white to-sageLight/30 border border-sage/20 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-butter/60 text-forest text-[11px] font-bold tracking-wide uppercase mb-1">
+                            Cozy Companion
+                        </span>
+                        <h2 class="font-display font-bold text-xl text-forest leading-snug">
+                            "Your digital mess?<br/>I've got this."
+                        </h2>
+                        <p class="text-xs text-mutedText mt-1">Stay cozy. We'll sort the clutter together.</p>
+                        
+                        <button onclick="LazySlothApp.switchTab('photos')" class="mt-3.5 w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2 active:scale-[0.98]">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Let's Tidy Up Together</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Storage Reclaim Summary Card -->
+                <div class="bg-forest text-white rounded-3xl p-4 shadow-cozy relative overflow-hidden flex items-center justify-between">
+                    <div class="space-y-1">
+                        <p class="text-[11px] font-medium text-sage uppercase tracking-wider">Cleanable Space In Review</p>
+                        <div class="flex items-baseline space-x-1">
+                            <span id="home-cleanable-size" class="text-3xl font-display font-extrabold text-butter">3.5</span>
+                            <span id="home-cleanable-unit" class="text-base font-bold text-cream">MB</span>
+                        </div>
+                        <p class="text-[11px] text-cream/80"><i class="fa-solid fa-circle-check text-sage mr-1"></i>You approve every sweep</p>
+                    </div>
+                    <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur border border-white/10 flex flex-col items-center justify-center text-center p-1">
+                        <i class="fa-solid fa-leaf text-butter text-xl mb-0.5"></i>
+                        <span id="home-cleanable-count" class="text-[9px] font-bold text-cream uppercase">3 Items</span>
+                    </div>
+                </div>
+
+                <!-- Three Cleanup Categories -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-mutedText uppercase tracking-wider px-1">Clutter Categories</h3>
+                    
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <!-- Photos Category -->
+                        <div onclick="LazySlothApp.switchTab('photos')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-coralLight text-coral flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-images"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">Photos & Images</h4>
+                                    <p class="text-xs text-mutedText">Select local images & detect exact duplicates</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-coral bg-coralLight px-2 py-0.5 rounded-full">SHA-256</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+
+                        <!-- Emails Category -->
+                        <div onclick="LazySlothApp.switchTab('inbox', 'email')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-sageLight text-forest flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-envelope-open-text"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">Email Inbox</h4>
+                                    <p class="text-xs text-mutedText">Promotions & newsletters (Demo mode)</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-forest bg-sageLight px-2 py-0.5 rounded-full">Demo</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+
+                        <!-- Messages Category -->
+                        <div onclick="LazySlothApp.switchTab('inbox', 'sms')" class="paper-card rounded-2xl p-3.5 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99]">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-sm text-forest">SMS & Messages</h4>
+                                    <p class="text-xs text-mutedText">Old OTPs & promo codes (Sandbox notice)</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-amber-700 bg-amber-100/60 px-2 py-0.5 rounded-full">Sandbox</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-mutedText ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Banner Footer -->
+                <div class="p-3 rounded-2xl bg-creamDark/60 border border-sage/20 flex items-center space-x-2.5 text-xs text-mutedText">
+                    <i class="fa-solid fa-user-shield text-forest text-base flex-shrink-0"></i>
+                    <span>Your files never leave this device. Zero server uploads. You approve every sweep.</span>
+                </div>
+            </section>
+
+            <!-- 2. PHOTOS CLEAN SCREEN -->
+            <section id="view-photos" class="space-y-3.5 hidden">
+                
+                <!-- Safety Rule Banner -->
+                <div class="p-3 rounded-2xl bg-sageLight/70 border border-sage/40 flex items-center space-x-2 text-xs text-forest font-medium">
+                    <i class="fa-solid fa-shield-cat text-base text-forest flex-shrink-0"></i>
+                    <span>Important notes, docs & study photos are automatically tagged <strong>"Keep Safe"</strong> and unselected.</span>
+                </div>
+
+                <!-- Real Local Photo Picker Controls -->
+                <div class="paper-card rounded-2xl p-3.5 border border-sage/30 space-y-2.5">
+                    <input type="file" id="photo-file-input" multiple accept="image/*" class="hidden">
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="document.getElementById('photo-file-input').click()" class="flex-1 py-2.5 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 active:scale-[0.99]">
+                            <i class="fa-solid fa-folder-open text-butter"></i>
+                            <span>Select Local Photos</span>
+                        </button>
+                        <button onclick="LazySlothApp.loadSamplePhotos()" title="Load test images with duplicates and notes" class="py-2.5 px-3 bg-creamDark hover:bg-sageLight text-forest font-bold text-xs rounded-xl border border-sage/30 transition flex items-center space-x-1">
+                            <i class="fa-solid fa-flask"></i>
+                            <span>Load Test Batch</span>
+                        </button>
+                    </div>
+
+                    <p class="text-[10px] text-mutedText leading-relaxed">
+                        <i class="fa-solid fa-lock text-emerald-600 mr-1"></i>
+                        Files stay entirely on your device. Exact duplicate detection uses browser SHA-256 hashing.
+                    </p>
+                </div>
+
+                <!-- Filter Category Pills -->
+                <div class="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar">
+                    <button id="photo-filter-all" onclick="LazySlothApp.filterPhotos('all')" class="photo-filter-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-forest text-white shadow-sm whitespace-nowrap">
+                        All <span id="photo-count-all">(0)</span>
+                    </button>
+                    <button id="photo-filter-dup" onclick="LazySlothApp.filterPhotos('dup')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">
+                        Exact Duplicates <span id="photo-count-dup">(0)</span>
+                    </button>
+                    <button id="photo-filter-safe" onclick="LazySlothApp.filterPhotos('safe')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">
+                        Keep Safe / Notes <span id="photo-count-safe">(0)</span>
+                    </button>
+                    <button id="photo-filter-unique" onclick="LazySlothApp.filterPhotos('unique')" class="photo-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-mutedText hover:bg-sageLight border border-sage/20 whitespace-nowrap">
+                        Singles <span id="photo-count-unique">(0)</span>
+                    </button>
+                </div>
+
+                <!-- Empty State Message (Shown when 0 photos selected) -->
+                <div id="photo-empty-state" class="paper-card rounded-2xl p-6 text-center space-y-3 border border-dashed border-sage/40">
+                    <div class="w-12 h-12 rounded-full bg-sageLight text-forest flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-forest">No local photos selected yet</h4>
+                        <p class="text-xs text-mutedText mt-1">
+                            Choose photos from your device to scan for exact byte-for-byte duplicates, or load a test batch!
+                        </p>
+                    </div>
+                    <button onclick="LazySlothApp.loadSamplePhotos()" class="px-4 py-2 bg-coral hover:bg-coral/90 text-white font-bold text-xs rounded-xl shadow-sm transition inline-flex items-center space-x-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Load Sample Image Batch</span>
+                    </button>
+                </div>
+
+                <!-- Media Item Grid (Populated dynamically) -->
+                <div class="grid grid-cols-2 gap-2.5" id="photo-grid"></div>
+
+                <!-- Action Button -->
+                <button onclick="LazySlothApp.switchTab('review')" class="w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Proceed to Review Selected Items</span>
+                </button>
+            </section>
+
+            <!-- 3. INBOX & MESSAGES SCREEN -->
+            <section id="view-inbox" class="space-y-3.5 hidden">
+                <!-- Toggle Switch for Email vs SMS -->
+                <div class="bg-creamDark/80 p-1 rounded-2xl flex border border-sage/20">
+                    <button id="tab-btn-email" onclick="LazySlothApp.toggleInboxSubTab('email')" class="flex-1 py-2 rounded-xl text-xs font-bold text-forest bg-white shadow-sm transition">
+                        <i class="fa-solid fa-envelope mr-1"></i> Email Clean
+                    </button>
+                    <button id="tab-btn-sms" onclick="LazySlothApp.toggleInboxSubTab('sms')" class="flex-1 py-2 rounded-xl text-xs font-bold text-mutedText hover:text-forest transition">
+                        <i class="fa-solid fa-message mr-1"></i> SMS & Messages
+                    </button>
+                </div>
+
+                <!-- EMAIL PANEL -->
+                <div id="panel-email" class="space-y-3">
+                    
+                    <!-- Honest Status & Connection Card -->
+                    <div class="paper-card rounded-2xl p-3.5 border border-sage/30 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-forest">Inbox Integration Status</span>
+                            <span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Not Connected (Demo Mode)</span>
+                        </div>
+                        <p class="text-[11px] text-mutedText leading-relaxed">
+                            A real integration requires connecting via Google Gmail API or IMAP OAuth 2.0 with minimal read-only permissions (<code class="text-forest font-mono">gmail.readonly</code>). LazySloth never asks for passwords.
+                        </p>
+                        <button onclick="LazySlothApp.openEmailConnectModal()" class="w-full py-2 bg-creamDark hover:bg-sageLight text-forest font-bold text-xs rounded-xl border border-sage/30 transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-link"></i>
+                            <span>Inspect Connection Architecture</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs font-bold text-forest px-1">
+                        <span>Sample Clutter Items (Demo)</span>
+                        <span class="text-mutedText text-[11px]">Syncs with Review</span>
+                    </div>
+
+                    <div id="email-items-container" class="space-y-2"></div>
+                </div>
+
+                <!-- SMS PANEL -->
+                <div id="panel-sms" class="space-y-3 hidden">
+                    <!-- Honest Permission Banner -->
+                    <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+                        <div class="font-bold flex items-center space-x-1.5 text-amber-800">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                            <span>Browser Sandbox Privacy Boundary</span>
+                        </div>
+                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                            Web browsers cannot access private device SMS or text messages due to OS security sandboxes (Android / iOS / Windows). LazySloth cannot read or delete your private messages directly in a browser.
+                        </p>
+                        <p class="text-[10px] text-amber-700 font-medium">
+                            <i class="fa-solid fa-mobile-screen mr-1"></i>Future Roadmap: A native mobile wrapper with explicit user permissions will enable direct SMS inspection.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs font-bold text-forest px-1">
+                        <span>Sample SMS Clutter (Demo)</span>
+                        <span class="text-mutedText text-[11px]">Syncs with Review</span>
+                    </div>
+
+                    <div id="sms-items-container" class="space-y-2"></div>
+                </div>
+            </section>
+
+            <!-- 4. REVIEW & CONFIRMATION SCREEN -->
+            <section id="view-review" class="space-y-3.5 hidden">
+                <!-- Header Banner -->
+                <div class="paper-card rounded-2xl p-3.5 bg-gradient-to-r from-sageLight/60 to-white flex items-center justify-between border border-sage/30">
+                    <div>
+                        <h3 class="font-bold text-sm text-forest">Review Before Sweeping</h3>
+                        <p class="text-xs text-mutedText">Nothing is cleared without confirmation.</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="selected-count-badge" class="font-display font-bold text-lg text-coral">0 Items</span>
+                        <p id="selected-size-badge" class="text-[10px] font-bold text-forest uppercase">0 B Total</p>
+                    </div>
+                </div>
+
+                <!-- Empty Review Queue State -->
+                <div id="review-empty-state" class="paper-card rounded-2xl p-6 text-center space-y-2 border border-dashed border-sage/40 hidden">
+                    <div class="w-12 h-12 rounded-full bg-sageLight text-forest flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-forest">Review Queue is Empty</h4>
+                    <p class="text-xs text-mutedText">
+                        No items are selected for cleanup. All safe and cozy!
+                    </p>
+                </div>
+
+                <!-- Review Items List (Synchronized across all categories) -->
+                <div id="review-items-list" class="space-y-2"></div>
+
+                <!-- Action Button -->
+                <div class="pt-2">
+                    <button id="btn-sweep-review" onclick="LazySlothApp.openDeleteConfirmationModal()" class="w-full py-3.5 bg-coral hover:bg-coral/90 text-white font-bold text-sm rounded-2xl shadow-btn transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-broom text-butter"></i>
+                        <span>Sweep Away Selected Items</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS & PRIVACY SCREEN -->
+            <section id="view-settings" class="space-y-4 hidden">
+                <div class="paper-card rounded-3xl p-4 space-y-4">
+                    <h3 class="font-display font-bold text-base text-forest border-b border-sage/20 pb-2">Privacy & Device Status</h3>
+                    
+                    <!-- Honest Status Indicators -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Photos Access</p>
+                                <p class="text-[10px] text-mutedText">Local File Picker (Explicit Selection Only)</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">On-Device Active</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Email Integration</p>
+                                <p class="text-[10px] text-mutedText">OAuth 2.0 PKCE / IMAP boundary</p>
+                            </div>
+                            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Not Connected (Demo)</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">SMS & Messages</p>
+                                <p class="text-[10px] text-mutedText">Browser security sandbox boundary</p>
+                            </div>
+                            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Sandbox Limited</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-0.5">
+                                <p class="text-xs font-bold text-forest">Gemma AI Model</p>
+                                <p class="text-[10px] text-mutedText">Local exact SHA-256 hash detection</p>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">Not Configured</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App Preferences -->
+                <div class="paper-card rounded-3xl p-4 space-y-3">
+                    <h3 class="font-display font-bold text-base text-forest border-b border-sage/20 pb-2">Preferences</h3>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-0.5">
+                            <span class="text-xs font-semibold text-forest">Reduced Motion Accessibility</span>
+                            <p class="text-[10px] text-mutedText">Disables floating, hopping & particle animations</p>
+                        </div>
+                        <input type="checkbox" id="motion-toggle" class="w-4 h-4 rounded text-forest focus:ring-forest cursor-pointer">
+                    </div>
+
+                    <div class="pt-2 border-t border-sage/10">
+                        <button onclick="LazySlothApp.resetDemoSession()" class="w-full py-2 bg-creamDark hover:bg-sageLight text-forest font-bold text-xs rounded-xl border border-sage/30 transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>Reset Review Session Data</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legal / Tagline -->
+                <div class="text-center text-xs text-mutedText space-y-1 pt-2">
+                    <p class="font-display font-semibold text-forest">LazySloth Cleaner v1.0.0</p>
+                    <p>"Stay cozy. We'll sort the clutter together."</p>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- CONFIRMATION MODAL DIALOG (Safety Guardrail) -->
+        <div id="confirm-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden transition-opacity">
+            <div class="bg-white rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-2xl border border-sage/30 text-center animate-bounce-short">
+                <div class="w-12 h-12 rounded-full bg-coralLight text-coral flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-broom"></i>
+                </div>
+                <div>
+                    <h3 class="font-display font-bold text-lg text-forest">Ready to Sweep?</h3>
+                    <p class="text-xs text-mutedText mt-1">
+                        You are about to clear <strong id="modal-item-count" class="text-coral">0 items</strong> (<strong id="modal-item-size" class="text-forest">0 B</strong>) from this review queue.
+                    </p>
+                </div>
+                <div class="bg-cream p-2.5 rounded-2xl text-[11px] text-forest font-medium border border-sage/20 text-left space-y-1">
+                    <div class="font-bold flex items-center space-x-1">
+                        <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                        <span>Browser Safety Guardrail</span>
+                    </div>
+                    <p class="text-[10px] text-mutedText leading-relaxed">
+                        In this browser version, items are safely cleared from your review session and browser memory. Your original device files and real inboxes remain intact.
+                    </p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="LazySlothApp.executeFinalSweep()" class="w-full py-3 bg-coral hover:bg-coral/90 text-white font-bold text-xs rounded-xl shadow-btn transition">
+                        Yes, Clear from Review Session
+                    </button>
+                    <button onclick="LazySlothApp.closeDeleteConfirmationModal()" class="w-full py-2.5 bg-creamDark text-forest font-bold text-xs rounded-xl hover:bg-cream transition">
+                        Keep Everything Safe
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMAIL CONNECTION ARCHITECTURE MODAL -->
+        <div id="email-connect-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden transition-opacity">
+            <div class="bg-white rounded-3xl p-5 w-full max-w-xs space-y-3.5 shadow-2xl border border-sage/30 text-left">
+                <div class="flex items-center justify-between border-b border-sage/20 pb-2">
+                    <h3 class="font-display font-bold text-sm text-forest flex items-center space-x-1.5">
+                        <i class="fa-solid fa-envelope-circle-check text-coral"></i>
+                        <span>Email OAuth Integration</span>
+                    </h3>
+                    <button onclick="LazySlothApp.closeEmailConnectModal()" class="w-6 h-6 rounded-full hover:bg-slate-100 text-mutedText flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="text-xs text-darkText space-y-2">
+                    <p class="text-mutedText">
+                        LazySloth is designed for privacy-preserving clutter management. When connected to a real provider:
+                    </p>
+                    <ul class="space-y-1.5 text-[11px] list-disc list-inside text-forest">
+                        <li><strong>Standard OAuth 2.0 PKCE:</strong> We never see or store your password.</li>
+                        <li><strong>Minimum Scopes:</strong> Read-only access (<code class="bg-slate-100 px-1 font-mono">gmail.readonly</code>) to parse sender headers.</li>
+                        <li><strong>Zero Cloud Uploads:</strong> Header analysis occurs purely in-memory.</li>
+                    </ul>
+                </div>
+
+                <div class="pt-1">
+                    <button onclick="LazySlothApp.closeEmailConnectModal()" class="w-full py-2.5 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
+                        Got it, Return to Inbox
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="bg-white border-t border-sage/20 px-3 py-2 z-30 flex items-center justify-around flex-shrink-0">
+            <!-- Home Tab -->
+            <button onclick="LazySlothApp.switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center space-y-1 text-forest">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+
+            <!-- Photos Tab -->
+            <button onclick="LazySlothApp.switchTab('photos')" id="nav-photos" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-images text-lg"></i>
+                <span class="text-[10px] font-bold">Photos</span>
+            </button>
+
+            <!-- Inbox Tab -->
+            <button onclick="LazySlothApp.switchTab('inbox')" id="nav-inbox" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-envelope text-lg"></i>
+                <span class="text-[10px] font-bold">Inbox</span>
+            </button>
+
+            <!-- Review Tab -->
+            <button onclick="LazySlothApp.switchTab('review')" id="nav-review" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest relative">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-bold">Review</span>
+                <span id="nav-review-dot" class="absolute top-0 right-3 w-2 h-2 rounded-full bg-coral"></span>
+            </button>
+
+            <!-- Settings Tab -->
+            <button onclick="LazySlothApp.switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center space-y-1 text-mutedText hover:text-forest">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-bold">Settings</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- APPLICATION SCRIPTS (Modular Vanilla JS) -->
+    <script src="js/duplicate-detector.js"></script>
+    <script src="js/gemma-service.js"></script>
+    <script src="js/review-store.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

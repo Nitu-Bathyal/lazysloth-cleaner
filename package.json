@@ -1,0 +1,20 @@
+{
+  "name": "lazysloth-cleaner",
+  "version": "1.0.0",
+  "description": "LazySloth Cleaner - Stay cozy. We'll sort the clutter together.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run-all-tests.js"
+  },
+  "keywords": [
+    "lazysloth",
+    "cleaner",
+    "privacy-first",
+    "on-device",
+    "sha-256",
+    "duplicate-detection"
+  ],
+  "author": "LazySloth Team",
+  "license": "MIT"
+}
