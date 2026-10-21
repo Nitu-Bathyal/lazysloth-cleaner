@@ -754,7 +754,7 @@
                 <div class="space-y-1 pt-1 border-t border-sage/10">
                     <span class="text-[11px] font-bold text-forest">Connect Local Endpoint (localhost)</span>
                     <div class="flex items-center space-x-1.5">
-                        <input type="text" id="gemma-endpoint-input" value="http://localhost:5001" class="flex-1 px-2.5 py-1 text-xs rounded-xl border border-sage/30 bg-slate-50 font-mono">
+                        <input type="text" id="gemma-endpoint-input" value="" placeholder="https://your-backend.onrender.com or http://localhost:5001" class="flex-1 px-2.5 py-1 text-xs rounded-xl border border-sage/30 bg-slate-50 font-mono">
                         <button onclick="LazySlothApp.connectLocalGemmaEndpoint()" class="px-2.5 py-1 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
                             Connect
                         </button>
@@ -814,6 +814,7 @@
     </div>
 
     <!-- APPLICATION SCRIPTS (Modular Vanilla JS) -->
+    <script src="js/config.js"></script>
     <script src="js/duplicate-detector.js"></script>
     <script src="js/gemma-service.js"></script>
     <script src="js/review-store.js"></script>

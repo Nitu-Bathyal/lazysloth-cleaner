@@ -18,13 +18,32 @@ import sys
 import argparse
 import io
 import json
+import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
 
 app = Flask(__name__)
-# Enable CORS for local development and Render static preview
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8080", "https://*.onrender.com"]}})
+# Enable CORS for local development and Render production origins
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8080",
+            "https://lazysloth-cleaner.onrender.com",
+            re.compile(r"^https:\/\/.*\.onrender\.com$")
+        ]
+    }
+})
+
+@app.after_request
+def add_pna_and_security_headers(response):
+    """Add Private Network Access header when client sends Access-Control-Request-Private-Network."""
+    if request.headers.get("Access-Control-Request-Private-Network") == "true":
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 # Global runtime state
 MODEL_STATE = {
@@ -120,6 +139,39 @@ def health():
             "runtime": "python-transformers"
         }), 503
 
+@app.route("/status", methods=["GET"])
+@app.route("/v1/status", methods=["GET"])
+def status_info():
+    """Detailed model and environment diagnostics for hosted/local deployment."""
+    try:
+        import psutil
+        vm = psutil.virtual_memory()
+        total_ram_mb = round(vm.total / (1024 * 1024))
+        available_ram_mb = round(vm.available / (1024 * 1024))
+    except Exception:
+        total_ram_mb = 0
+        available_ram_mb = 0
+
+    is_free_tier = total_ram_mb > 0 and total_ram_mb <= 550
+
+    return jsonify({
+        "backendReachable": True,
+        "modelLoaded": MODEL_STATE["loaded"],
+        "modelName": MODEL_STATE["model_name"],
+        "device": MODEL_STATE["device"],
+        "status": "ready" if MODEL_STATE["loaded"] else ("test_mode" if MODEL_STATE["test_mode"] else "unconfigured"),
+        "hardware": {
+            "totalRamMb": total_ram_mb,
+            "availableRamMb": available_ram_mb,
+            "renderFreeTierDetected": is_free_tier,
+            "requiredRamMb": 3200
+        },
+        "feasibility": {
+            "canRunOnCurrentHost": (available_ram_mb >= 3200) or (MODEL_STATE["device"] == "cuda"),
+            "blocker": MODEL_STATE["blocker_reason"]
+        }
+    }), 200
+
 @app.route("/classify", methods=["POST"])
 @app.route("/v1/classify", methods=["POST"])
 def classify():
@@ -212,8 +264,8 @@ def classify():
 
 def main():
     parser = argparse.ArgumentParser(description="LazySloth Cleaner - Gemma/PaliGemma Companion Service")
-    parser.add_argument("--port", type=int, default=5001, help="Port to listen on (default: 5001)")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5001)), help="Port to listen on (default: $PORT or 5001)")
+    parser.add_argument("--host", type=str, default=os.environ.get("HOST", "0.0.0.0"), help="Host interface (default: $HOST or 0.0.0.0)")
     parser.add_argument("--model-path", type=str, default="google/paligemma-3b-pt-224", help="Hugging Face repo or local path")
     parser.add_argument("--device", type=str, default=None, help="Inference device: 'cpu' or 'cuda' (auto-detected if omitted)")
     parser.add_argument("--load-model", action="store_true", help="Explicitly trigger model loading (requires authorized Hugging Face token)")

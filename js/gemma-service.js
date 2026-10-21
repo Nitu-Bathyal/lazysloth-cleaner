@@ -25,12 +25,13 @@
 }(typeof self !== 'undefined' ? self : this, function () {
 
     const MODEL_STATUS = {
-        UNCONFIGURED: 'unconfigured', // Initial clean state
-        CHECKING: 'checking',         // Running hardware/runtime diagnostics
-        LOADING: 'loading',           // Model weights downloading/initializing with user consent
-        READY: 'ready',               // Model loaded and active for local inference
-        UNAVAILABLE: 'unavailable',   // Runtime/model not configured or not supported
-        ERROR: 'error'                // Initialization or inference failure
+        UNCONFIGURED: 'unconfigured',           // Initial clean state
+        CHECKING: 'checking',                   // Running hardware/runtime diagnostics
+        BACKEND_REACHABLE: 'backend_reachable', // Backend online, but model weights unconfigured/not loaded
+        LOADING: 'loading',                     // Model weights downloading/initializing with user consent
+        READY: 'ready',                         // Model loaded and active for real inference
+        UNAVAILABLE: 'unavailable',             // Runtime/model not configured or not supported
+        ERROR: 'error'                          // Initialization or inference failure
     };
 
     // Known Gemma family model specifications
@@ -72,15 +73,25 @@
 
     class GemmaClassifierService {
         constructor(config = {}) {
+            let defaultEndpoint = '';
+            if (typeof window !== 'undefined' && window.LAZYSLOTH_CONFIG && window.LAZYSLOTH_CONFIG.apiEndpoint) {
+                defaultEndpoint = window.LAZYSLOTH_CONFIG.apiEndpoint;
+            } else if (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                defaultEndpoint = 'http://localhost:5001';
+            }
+
             this.config = Object.assign({
-                runtime: 'browser-webgpu', // 'browser-webgpu' | 'local-endpoint' | 'heuristic-only'
+                runtime: defaultEndpoint ? 'remote-endpoint' : 'heuristic-only',
                 selectedModel: 'paligemma-3b-pt-224',
-                endpointUrl: 'http://localhost:5001',
-                confidenceThreshold: 0.70 // Scores below this trigger "Keep Safe"
+                endpointUrl: defaultEndpoint,
+                confidenceThreshold: 0.70, // Scores below this trigger "Keep Safe"
+                uploadConsent: false       // Explicit user consent required before uploading
             }, config);
 
             this.status = MODEL_STATUS.UNAVAILABLE;
-            this.statusMessage = 'Gemma AI is unconfigured. Local SHA-256 duplicate detection and heuristic safety rules are active.';
+            this.statusMessage = defaultEndpoint
+                ? 'Gemma AI backend configured. Testing connection...'
+                : 'Gemma AI is unconfigured. Local SHA-256 duplicate detection and heuristic safety rules are active.';
             this.activeModel = null;
             this.lastDiagnostic = null;
             this.inferenceProvider = null; // Injected inference handler for local runtime or tests
@@ -118,10 +129,12 @@
                 message: this.statusMessage,
                 isReady: this.status === MODEL_STATUS.READY,
                 isLoading: this.status === MODEL_STATUS.LOADING,
-                isUnavailable: this.status === MODEL_STATUS.UNAVAILABLE || this.status === MODEL_STATUS.UNCONFIGURED,
+                isBackendReachable: this.status === MODEL_STATUS.BACKEND_REACHABLE,
+                isUnavailable: this.status === MODEL_STATUS.UNAVAILABLE || this.status === MODEL_STATUS.UNCONFIGURED || this.status === MODEL_STATUS.BACKEND_REACHABLE,
                 isError: this.status === MODEL_STATUS.ERROR,
                 activeModel: this.activeModel,
                 runtime: this.config.runtime,
+                endpointUrl: this.config.endpointUrl,
                 knownModels: GEMMA_MODELS,
                 lastDiagnostic: this.lastDiagnostic
             };
@@ -213,16 +226,30 @@
         }
 
         /**
-         * Connect to a local companion endpoint (e.g. running PaliGemma locally on localhost)
-         * Preserves privacy by communicating only via local loopback.
+         * Connect to a local companion or remote hosted Gemma endpoint.
+         * Validates protocol to prevent mixed-content failures on HTTPS deployments.
          */
         async connectLocalEndpoint(url) {
             const targetUrl = url || this.config.endpointUrl;
-            this.setStatus(MODEL_STATUS.CHECKING, `Checking local Gemma companion at ${targetUrl}...`);
+            if (!targetUrl) {
+                const msg = 'No AI endpoint URL configured. Set a valid public or local backend URL.';
+                this.setStatus(MODEL_STATUS.UNAVAILABLE, msg);
+                return { success: false, error: msg };
+            }
+
+            // Guard against Mixed Content when the web app is hosted over HTTPS
+            const isHttpsOrigin = typeof window !== 'undefined' && window.location && window.location.protocol === 'https:';
+            if (isHttpsOrigin && targetUrl.startsWith('http://') && !targetUrl.includes('localhost') && !targetUrl.includes('127.0.0.1')) {
+                const mixedMsg = `Mixed Content Block: Cannot connect to an unencrypted HTTP endpoint (${targetUrl}) from an HTTPS deployment. Please configure an HTTPS backend URL (e.g. https://...).`;
+                this.setStatus(MODEL_STATUS.UNAVAILABLE, mixedMsg);
+                return { success: false, error: mixedMsg, mixedContent: true };
+            }
+
+            this.setStatus(MODEL_STATUS.CHECKING, `Checking Gemma inference service at ${targetUrl}...`);
 
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
 
                 const response = await fetch(`${targetUrl}/health`, {
                     method: 'GET',
@@ -233,32 +260,41 @@
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
                     const blockerMsg = errData.blocker || `Endpoint returned status ${response.status}`;
-                    const statusMsg = `Local Gemma companion reached, but model is unconfigured: ${blockerMsg}`;
-                    this.setStatus(MODEL_STATUS.UNAVAILABLE, statusMsg);
-                    return { success: false, error: blockerMsg, unconfigured: true };
+                    const statusMsg = `Backend reachable at ${targetUrl}, but PaliGemma model is unconfigured: ${blockerMsg}`;
+                    this.setStatus(MODEL_STATUS.BACKEND_REACHABLE, statusMsg);
+                    return { success: false, error: blockerMsg, unconfigured: true, backendReachable: true };
                 }
 
                 const data = await response.json();
                 this.activeModel = {
-                    name: data.modelName || 'Local Gemma/PaliGemma Service',
+                    name: data.modelName || 'PaliGemma Inference Service',
                     type: data.type || 'multimodal',
                     endpoint: targetUrl,
-                    runtime: 'local-endpoint'
+                    runtime: targetUrl.startsWith('http://localhost') ? 'local-endpoint' : 'remote-backend'
                 };
 
                 this.config.endpointUrl = targetUrl;
-                this.config.runtime = 'local-endpoint';
-                this.setStatus(MODEL_STATUS.READY, `Connected to local Gemma service: ${this.activeModel.name}`);
+                this.config.runtime = this.activeModel.runtime;
+                this.setStatus(MODEL_STATUS.READY, `Connected to Gemma service: ${this.activeModel.name}`);
                 return { success: true, model: this.activeModel };
 
             } catch (err) {
-                const isConnRefused = err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('ECONNREFUSED'));
+                const isConnRefused = err.message && (
+                    err.message.includes('Failed to fetch') || 
+                    err.message.includes('NetworkError') || 
+                    err.message.includes('ECONNREFUSED') ||
+                    err.message.includes('LocalNetworkAccessPermissionDenied')
+                );
                 const msg = isConnRefused 
-                    ? `Cannot connect to local Gemma companion at ${targetUrl} (Connection refused). Start the companion server with: npm run companion`
-                    : `Could not connect to local Gemma endpoint: ${err.message}`;
+                    ? `Cannot connect to Gemma service at ${targetUrl} (Connection refused or blocked by browser). Verify the backend is running.`
+                    : `Could not connect to Gemma endpoint: ${err.message}`;
                 this.setStatus(MODEL_STATUS.UNAVAILABLE, msg);
                 return { success: false, error: msg };
             }
+        }
+
+        async connectBackendEndpoint(url) {
+            return this.connectLocalEndpoint(url);
         }
 
         /**
@@ -420,9 +456,32 @@
                 try {
                     let prediction = null;
 
+                    // Enforce privacy disclosure when transmitting to an external/remote service
+                    if (this.config.runtime === 'remote-backend') {
+                        if (!this.config.uploadConsent) {
+                            const approved = (typeof window !== 'undefined' && window.confirm)
+                                ? window.confirm(
+                                    "PRIVACY & CLOUD INFERENCE DISCLOSURE:\n\n" +
+                                    "Using Gemma AI image classification transmits this image to the inference backend at:\n" +
+                                    (this.config.endpointUrl || 'configured service') + "\n\n" +
+                                    "Note: Local SHA-256 duplicate detection runs 100% on your device without uploading.\n\n" +
+                                    "Do you authorize transmitting this photo for AI classification?"
+                                )
+                                : true;
+
+                            if (!approved) {
+                                const fallback = this.classifyByHeuristics(fileOrMetadata);
+                                return Object.assign({}, fallback, {
+                                    statusNote: 'Local heuristic rule applied (cloud upload consent declined).'
+                                });
+                            }
+                            this.config.uploadConsent = true;
+                        }
+                    }
+
                     if (typeof this.inferenceProvider === 'function') {
                         prediction = await this.inferenceProvider(fileOrMetadata);
-                    } else if (this.config.runtime === 'local-endpoint') {
+                    } else if (this.config.runtime === 'local-endpoint' || this.config.runtime === 'remote-backend') {
                         prediction = await this._classifyViaLocalEndpoint(fileOrMetadata);
                     }
 

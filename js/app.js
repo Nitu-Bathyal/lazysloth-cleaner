@@ -86,6 +86,10 @@
             dotClass = 'bg-amber-500 animate-pulse';
             labelText = 'Gemma: Loading...';
             descText = 'Model weights initializing...';
+        } else if (state.isBackendReachable) {
+            dotClass = 'bg-amber-500';
+            labelText = 'Gemma: Standby';
+            descText = 'Backend Reachable (Model Not Loaded)';
         } else if (state.isError) {
             dotClass = 'bg-red-500';
             labelText = 'Gemma: Error';
@@ -802,6 +806,13 @@
         if (modal) {
             modal.classList.remove('hidden');
             const state = AppState.gemmaService.getStatus();
+            const input = document.getElementById('gemma-endpoint-input');
+            if (input && state.endpointUrl !== undefined) {
+                input.value = state.endpointUrl;
+                if (!state.endpointUrl && window.location.protocol === 'https:') {
+                    input.placeholder = 'https://your-backend.onrender.com';
+                }
+            }
             updateGemmaUI(state);
         }
     }
