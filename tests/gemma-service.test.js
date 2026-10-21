@@ -148,6 +148,45 @@ describe('LazySloth Gemma AI Service Tests (Phase 2)', () => {
         assert.strictEqual(result.gemmaActive, false);
     });
 
+    it('should handle offline local companion endpoint with clear actionable message', async () => {
+        const service = new GemmaClassifierService();
+        // Target an unused port
+        const res = await service.connectLocalEndpoint('http://localhost:59999');
+        assert.strictEqual(res.success, false);
+        assert.strictEqual(typeof res.error, 'string');
+        assert.strictEqual(service.getStatus().isUnavailable, true);
+    });
+
+    it('should handle unconfigured companion model state gracefully', async () => {
+        const service = new GemmaClassifierService();
+        
+        // Mock a 503 response from companion server
+        const originalFetch = global.fetch;
+        global.fetch = async (url) => {
+            if (url.includes('/health')) {
+                return {
+                    ok: false,
+                    status: 503,
+                    json: async () => ({
+                        status: 'unconfigured',
+                        blocker: 'PaliGemma weights not loaded'
+                    })
+                };
+            }
+            return originalFetch(url);
+        };
+
+        try {
+            const res = await service.connectLocalEndpoint('http://localhost:5001');
+            assert.strictEqual(res.success, false);
+            assert.strictEqual(res.unconfigured, true);
+            assert.strictEqual(res.error, 'PaliGemma weights not loaded');
+            assert.strictEqual(service.getStatus().isUnavailable, true);
+        } finally {
+            global.fetch = originalFetch;
+        }
+    });
+
 });
 
 function describe(name, fn) {

@@ -161,8 +161,12 @@ async function runE2ETests() {
         console.log('\nNavigating to http://localhost:3000/lazysloth_cleaner.html...');
         await cdp.send('Page.navigate', { url: `http://localhost:${PORT}/lazysloth_cleaner.html` });
 
-        // Wait for page to load
-        await new Promise(r => setTimeout(r, 1200));
+        // Wait for page and DOM to be completely loaded
+        for (let i = 0; i < 40; i++) {
+            const isReady = await cdp.evaluate('document.readyState === "complete" && Boolean(document.querySelector("header h1"))').catch(() => false);
+            if (isReady) break;
+            await new Promise(r => setTimeout(r, 200));
+        }
 
         console.log('Console messages so far:', cdp.consoleMessages);
 

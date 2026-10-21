@@ -231,7 +231,11 @@
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    throw new Error(`Endpoint returned status ${response.status}`);
+                    const errData = await response.json().catch(() => ({}));
+                    const blockerMsg = errData.blocker || `Endpoint returned status ${response.status}`;
+                    const statusMsg = `Local Gemma companion reached, but model is unconfigured: ${blockerMsg}`;
+                    this.setStatus(MODEL_STATUS.UNAVAILABLE, statusMsg);
+                    return { success: false, error: blockerMsg, unconfigured: true };
                 }
 
                 const data = await response.json();
@@ -248,7 +252,10 @@
                 return { success: true, model: this.activeModel };
 
             } catch (err) {
-                const msg = `Could not connect to local Gemma endpoint (${err.message}). Is the local companion server running?`;
+                const isConnRefused = err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('ECONNREFUSED'));
+                const msg = isConnRefused 
+                    ? `Cannot connect to local Gemma companion at ${targetUrl} (Connection refused). Start the companion server with: npm run companion`
+                    : `Could not connect to local Gemma endpoint: ${err.message}`;
                 this.setStatus(MODEL_STATUS.UNAVAILABLE, msg);
                 return { success: false, error: msg };
             }
@@ -453,17 +460,28 @@
             });
         }
 
-        async _classifyViaLocalEndpoint(file) {
+        async _classifyViaLocalEndpoint(fileOrBlob) {
             const endpoint = this.config.endpointUrl;
             const formData = new FormData();
-            formData.append('file', file);
+
+            if (typeof Blob !== 'undefined' && fileOrBlob instanceof Blob) {
+                const filename = fileOrBlob.name || 'photo.jpg';
+                formData.append('file', fileOrBlob, filename);
+            } else if (fileOrBlob && fileOrBlob.rawFile && typeof Blob !== 'undefined' && fileOrBlob.rawFile instanceof Blob) {
+                formData.append('file', fileOrBlob.rawFile, fileOrBlob.name || 'photo.jpg');
+            } else if (fileOrBlob && typeof fileOrBlob === 'object') {
+                formData.append('file', new Blob([JSON.stringify(fileOrBlob)], { type: 'application/json' }), fileOrBlob.name || 'metadata.json');
+            }
 
             const res = await fetch(`${endpoint}/classify`, {
                 method: 'POST',
                 body: formData
             });
 
-            if (!res.ok) throw new Error(`Local endpoint classification error: ${res.status}`);
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || errData.blocker || `Local endpoint classification error: ${res.status}`);
+            }
             return await res.json();
         }
     }

@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "companion": "python companion/gemma_companion.py",
     "test": "node tests/run-all-tests.js"
   },
   "keywords": [
