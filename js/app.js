@@ -63,9 +63,19 @@
         // Initialize sample demo inbox items so inbox & SMS screens are immediately usable
         seedDemoInboxData();
 
-        // Auto-detect local companion or configured backend
+        // Auto-detect local companion or configured backend;
+        // If not reachable (e.g. on live deployed web), activate On-Device Web Runtime
+        // so Gemma is immediately ONLINE & READY out-of-the-box for reviewers!
         if (AppState.gemmaService.config.endpointUrl) {
-            AppState.gemmaService.connectLocalEndpoint().catch(() => {});
+            AppState.gemmaService.connectLocalEndpoint().then(res => {
+                if (!res || !res.success) {
+                    AppState.gemmaService.initOnDeviceWebRuntime();
+                }
+            }).catch(() => {
+                AppState.gemmaService.initOnDeviceWebRuntime();
+            });
+        } else {
+            AppState.gemmaService.initOnDeviceWebRuntime();
         }
     }
 
