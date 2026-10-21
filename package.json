@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "companion": "python companion/gemma_companion.py",
+    "tunnel": "npx --yes localtunnel --port 5001",
     "test": "node tests/run-all-tests.js"
   },
   "keywords": [

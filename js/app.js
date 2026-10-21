@@ -989,6 +989,9 @@
         if (!result.success) {
             alert(`Connection notice: ${result.error}`);
         } else {
+            try {
+                localStorage.setItem('lazysloth_api_endpoint', url);
+            } catch (_) {}
             alert(`Connected successfully to ${result.model.name}!`);
             closeGemmaDiagnosticsModal();
         }

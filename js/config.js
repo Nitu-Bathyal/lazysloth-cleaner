@@ -18,11 +18,19 @@
         )
     );
 
+    // Retrieve user-configured public endpoint from localStorage if previously connected
+    let savedEndpoint = '';
+    try {
+        if (typeof root.localStorage !== 'undefined') {
+            savedEndpoint = root.localStorage.getItem('lazysloth_api_endpoint') || '';
+        }
+    } catch (_) {}
+
     // Default configuration
     root.LAZYSLOTH_CONFIG = {
         // In local development, default to local loopback;
-        // In production, empty by default until a public backend service is provisioned
-        apiEndpoint: isLocalhost ? 'http://localhost:5001' : '',
+        // In production, use saved public endpoint or empty by default
+        apiEndpoint: savedEndpoint || (isLocalhost ? 'http://localhost:5001' : ''),
         isLocalhost: isLocalhost,
         environment: isLocalhost ? 'development' : 'production',
         // Require explicit user consent dialog before uploading any photo to a remote backend

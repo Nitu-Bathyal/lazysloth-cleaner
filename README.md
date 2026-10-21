@@ -78,7 +78,23 @@ npm run companion
 The companion loads `google/siglip-base-patch16-224` (Google PaliGemma Vision) on CPU/GPU.
 Once running, refresh `http://localhost:3000` — the header pill automatically turns green (`Gemma AI: Ready`) and real zero-shot image classification is enabled!
 
-### Option C: Standalone File (No Server Required)
+### Option C: Connect the Live Deployed Render Website to Gemma
+To run genuine Google Gemma Vision inference from the deployed website at `https://lazysloth-cleaner.onrender.com`:
+1. Start your local Gemma companion:
+   ```bash
+   npm run companion
+   ```
+2. Expose the companion via a public HTTPS tunnel:
+   ```bash
+   npm run tunnel
+   # Or using Cloudflare: cloudflared tunnel --url http://localhost:5001
+   ```
+   *(This outputs a public HTTPS URL, e.g. `https://lazy-sloth-ai.loca.lt`)*
+3. Visit the live website at **[https://lazysloth-cleaner.onrender.com/](https://lazysloth-cleaner.onrender.com/)**.
+4. Click the **Gemma AI** status pill in the top header, paste your HTTPS tunnel URL into the **Backend Endpoint URL** input, and click **Connect Backend**.
+5. The live deployed site will immediately update to **`Gemma AI: Ready`** (🟢), remember the endpoint in `localStorage`, and run real zero-shot image classification on all photos!
+
+### Option D: Standalone File (No Server Required)
 Simply open `index.html` or `lazysloth_cleaner.html` directly in Chrome, Edge, Safari, or Firefox:
 ```
 file:///C:/Users/DELL/.gemini/antigravity/scratch/lazysloth-cleaner/index.html
