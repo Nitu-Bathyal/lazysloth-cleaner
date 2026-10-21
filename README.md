@@ -2,11 +2,10 @@
 
 > **“Stay cozy. We'll sort the clutter together.”**
 
-[![Live Website](https://img.shields.io/badge/Live%20Demo-lazysloth--cleaner.onrender.com-success?style=for-the-badge&logo=render&logoColor=white)](https://lazysloth-cleaner.onrender.com/)
+
 
 
 **Live Website:** [https://lazysloth-cleaner.onrender.com/](https://lazysloth-cleaner.onrender.com/)  
-**GitHub Repository:** [https://github.com/Nitu-Bathyal/lazysloth-cleaner](https://github.com/Nitu-Bathyal/lazysloth-cleaner)
 
 LazySloth Cleaner is a cozy, privacy-first decluttering application created for the Dev Challenge. It helps people manage photo duplicates, promotional newsletters, and message clutter without anxiety, scary delete buttons, or privacy compromises.
 
