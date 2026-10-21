@@ -146,25 +146,9 @@ npm test
 
 ---
 
-## 📄 License
-MIT License. LazySloth character design & artwork copyright protected.
-   - Subsequent identical files are tagged with **"Exact Match"** and pre-selected for cleanup.
-   - Files matching notes/study/receipts/whiteboards are automatically tagged **"Keep Safe"** and unselected.
-4. Click **"Proceed to Review Selected Items"** to view candidate items.
-5. In the Review screen, inspect the items and click **"Sweep Away Selected Items"**.
-6. The confirmation dialog will open, explaining the browser safety boundary (items will be removed from the review session without modifying your disk files). Confirm to sweep!
+## 🎨 Original Mascot & Visual Assets
 
----
-
-## 🔒 Privacy & Architecture Guardrails
-
-| Feature | Current State | Truthful Disclosure |
-|---|---|---|
-| **Photos** | Local File Picker & SHA-256 Hashing | Only processes files you explicitly select. No whole-device gallery scan. No server uploads. |
-| **Email** | Demo Mode | Not connected. Real integration requires OAuth 2.0 PKCE with read-only scopes (`gmail.readonly`). Zero password storage. |
-| **SMS / Messages** | Demo Mode (Sandbox Notice) | Web browsers cannot access device SMS due to OS security sandboxing. Native mobile wrapper planned. |
-| **Gemma AI** | Unconfigured Interface | Heuristic rules are explicitly labeled. No fake claims of active AI neural inference. |
-| **File Deletion** | Safe Session Removal | Browser security prevents deleting device files. Items are removed from in-memory review. |
+The original mascot design is preserved in [`assets/mascot/Whimsical Sloth Broom Wizard.png`](assets/mascot/Whimsical%20Sloth%20Broom%20Wizard.png). The inline SVG implementation faithfully translates every design detail—including the pink hoodie, headphones, pointed star-pinned wizard hat, and golden leaf broom—with GPU-accelerated CSS animations.
 
 ---
 
