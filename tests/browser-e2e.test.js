@@ -107,9 +107,25 @@ async function runE2ETests() {
     console.log('  LazySloth Cleaner - Headless Browser E2E Test Suite');
     console.log('========================================================\n');
 
-    // 1. Start static server
-    await new Promise(resolve => server.listen(PORT, resolve));
-    console.log(`✓ Local static server started on http://localhost:${PORT}`);
+    // 1. Check or start static server
+    let serverStartedByTest = false;
+    try {
+        const check = await fetch(`http://localhost:${PORT}/lazysloth_cleaner.html`);
+        if (check.ok) {
+            console.log(`✓ Reusing existing running static server on http://localhost:${PORT}`);
+        } else {
+            throw new Error('Server not OK');
+        }
+    } catch (e) {
+        await new Promise((resolve, reject) => {
+            server.once('error', reject);
+            server.listen(PORT, () => {
+                serverStartedByTest = true;
+                resolve();
+            });
+        });
+        console.log(`✓ Local static server started on http://localhost:${PORT}`);
+    }
 
     // 2. Launch headless browser
     const browserPath = findBrowserPath();
@@ -307,7 +323,7 @@ async function runE2ETests() {
     } finally {
         if (cdp) cdp.close();
         if (browserProc) browserProc.kill();
-        server.close();
+        if (serverStartedByTest) server.close();
     }
 }
 
