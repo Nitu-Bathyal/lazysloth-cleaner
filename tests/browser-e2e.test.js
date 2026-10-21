@@ -245,6 +245,24 @@ async function runE2ETests() {
             toggle.dispatchEvent(new Event("change"));
         })()`);
 
+        // Test 4b: Dev Challenge Story Modal
+        console.log('\n[Check 4b] Dev Challenge Story Modal');
+        await cdp.evaluate('LazySlothApp.openStoryModal()');
+        const storyModalOpen = await cdp.evaluate('!document.getElementById("story-modal").classList.contains("hidden")');
+        console.log(`  Story modal opened: ${storyModalOpen}`);
+        if (!storyModalOpen) throw new Error('Story modal did not open');
+
+        const storyHasGemma = await cdp.evaluate('document.getElementById("story-modal").innerText.includes("Gemma")');
+        const storyHasCopilot = await cdp.evaluate('document.getElementById("story-modal").innerText.includes("GitHub Copilot")');
+        const storyHasRender = await cdp.evaluate('document.getElementById("story-modal").innerText.includes("Render")');
+        console.log(`  Story explains 3 technologies (Gemma: ${storyHasGemma}, Copilot: ${storyHasCopilot}, Render: ${storyHasRender})`);
+        if (!storyHasGemma || !storyHasCopilot || !storyHasRender) throw new Error('Story modal missing 3 technologies');
+
+        await cdp.evaluate('LazySlothApp.closeStoryModal()');
+        const storyModalClosed = await cdp.evaluate('document.getElementById("story-modal").classList.contains("hidden")');
+        console.log(`  Story modal closed: ${storyModalClosed}`);
+        if (!storyModalClosed) throw new Error('Story modal did not close');
+
         // Test 5: Real Local Photo Duplicate Detection & Gemma Provenance Workflow
         console.log('\n[Check 5] Real Local Photo Duplicate Detection & Gemma Provenance');
         await cdp.evaluate('LazySlothApp.switchTab("photos")');
@@ -292,6 +310,21 @@ async function runE2ETests() {
         const ruleBadges = await cdp.evaluate('document.querySelectorAll("#photo-grid .fa-code-branch").length');
         console.log(`  Provenance Rule/AI badges rendered on cards: ${ruleBadges}`);
         if (ruleBadges < 1) throw new Error('Provenance classification badge not rendered on photo cards');
+
+        // Verify Demo Sample badges
+        const sampleBadges = await cdp.evaluate('Array.from(document.querySelectorAll("#photo-grid span")).filter(el => el.innerText.includes("Demo Sample")).length');
+        console.log(`  Demo Sample badges found: ${sampleBadges}`);
+        if (sampleBadges !== 4) throw new Error(`Expected 4 Demo Sample badges, got ${sampleBadges}`);
+
+        // Verify Batch Scan Summary Widget
+        const summaryWidgetVisible = await cdp.evaluate('!document.getElementById("photo-summary-widget").classList.contains("hidden")');
+        const summaryTotal = await cdp.evaluate('document.getElementById("summary-total-files").innerText');
+        const summaryDups = await cdp.evaluate('document.getElementById("summary-dup-count").innerText');
+        const summarySafe = await cdp.evaluate('document.getElementById("summary-safe-count").innerText');
+        console.log(`  Batch Scan Summary Widget (Visible: ${summaryWidgetVisible}, Total: "${summaryTotal}", Dups: "${summaryDups}", Safe: "${summarySafe}")`);
+        if (!summaryWidgetVisible || summaryDups !== '1' || summarySafe !== '3') {
+            throw new Error('Batch Scan Summary Widget stats mismatch');
+        }
 
         // Test 6: Review Queue Synchronization & Badges
         console.log('\n[Check 6] Review Queue Synchronization');

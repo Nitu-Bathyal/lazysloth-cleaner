@@ -384,12 +384,66 @@
     function handlePhotoFileInput(event) {
         const files = event.target.files;
         if (!files || files.length === 0) return;
-        processLocalPhotoFiles(Array.from(files));
+        const fileList = Array.from(files);
+        const imageFiles = fileList.filter(f => f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f.name));
+
+        if (imageFiles.length === 0) {
+            const speechEl = document.getElementById('sloth-speech');
+            if (speechEl) {
+                speechEl.innerText = "Hmm, those don't look like image files! LazySloth Photo cleaner only accepts images (JPEG, PNG, WebP, etc.).";
+            }
+            alert("No supported images detected. Please select image files (e.g. JPG, PNG, WEBP).");
+            event.target.value = '';
+            return;
+        }
+
+        processLocalPhotoFiles(imageFiles, false);
         // Reset file input value so selecting the same files again triggers change
         event.target.value = '';
     }
 
-    async function processLocalPhotoFiles(files) {
+    function initDragAndDrop() {
+        const dropZone = document.getElementById('photo-drop-zone');
+        if (!dropZone) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('border-coral', 'bg-coralLight/30');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('border-coral', 'bg-coralLight/30');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt ? dt.files : null;
+            if (!files || files.length === 0) return;
+
+            const fileList = Array.from(files);
+            const imageFiles = fileList.filter(f => f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(f.name));
+
+            if (imageFiles.length === 0) {
+                const speechEl = document.getElementById('sloth-speech');
+                if (speechEl) {
+                    speechEl.innerText = "Hmm, those don't look like image files! LazySloth Photo cleaner only accepts images (JPEG, PNG, WebP, etc.).";
+                }
+                alert("No supported images detected. Please drop image files (e.g. JPG, PNG, WEBP).");
+                return;
+            }
+
+            processLocalPhotoFiles(imageFiles, false);
+        }, false);
+    }
+
+    async function processLocalPhotoFiles(files, isSampleBatch = false) {
         if (AppState.isScanning) return;
         AppState.isScanning = true;
 
@@ -416,6 +470,10 @@
 
             // Create object URLs for thumbnails & run Gemma/heuristic classification
             for (const item of scanResult.items) {
+                if (isSampleBatch || (item.file && item.file.isSample)) {
+                    item.isSample = true;
+                }
+
                 if (item.file && !item.thumbnailUrl) {
                     try {
                         item.thumbnailUrl = URL.createObjectURL(item.file);
@@ -482,6 +540,7 @@
     function renderPhotoGrid() {
         const grid = document.getElementById('photo-grid');
         const emptyState = document.getElementById('photo-empty-state');
+        const summaryWidget = document.getElementById('photo-summary-widget');
         if (!grid) return;
 
         const allPhotoItems = AppState.reviewStore.getByCategory('photo');
@@ -500,6 +559,28 @@
         if (countDup) countDup.innerText = `(${dupCount})`;
         if (countSafe) countSafe.innerText = `(${safeCount})`;
         if (countUnique) countUnique.innerText = `(${uniqueCount})`;
+
+        // Update batch scan summary widget
+        if (summaryWidget) {
+            if (allPhotoItems.length > 0) {
+                summaryWidget.classList.remove('hidden');
+                const totalEl = document.getElementById('summary-total-files');
+                const dupEl = document.getElementById('summary-dup-count');
+                const safeEl = document.getElementById('summary-safe-count');
+                const cleanableEl = document.getElementById('summary-cleanable-bytes');
+
+                const cleanableBytes = allPhotoItems
+                    .filter(p => p.selected && !p.keepSafe)
+                    .reduce((acc, p) => acc + (p.fileSize || 0), 0);
+
+                if (totalEl) totalEl.innerText = `${allPhotoItems.length} Photo${allPhotoItems.length === 1 ? '' : 's'}`;
+                if (dupEl) dupEl.innerText = dupCount;
+                if (safeEl) safeEl.innerText = safeCount;
+                if (cleanableEl) cleanableEl.innerText = AppState.detector.formatBytes(cleanableBytes);
+            } else {
+                summaryWidget.classList.add('hidden');
+            }
+        }
 
         // Filter items
         let filtered = allPhotoItems;
@@ -531,6 +612,10 @@
                 ? '<i class="fa-solid fa-shield mr-1"></i>Keep Safe' 
                 : (item.isDuplicate ? '<i class="fa-solid fa-copy mr-1"></i>Exact Match' : 'Unique');
 
+            const sourceBadge = item.isSample
+                ? '<span class="text-[8px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-200">Demo Sample</span>'
+                : '<span class="text-[8px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded border border-blue-200">Local File</span>';
+
             const thumbSrc = item.thumbnailUrl || 'https://placehold.co/150x120/A8C8A0/244C3A?text=Image';
 
             card.innerHTML = `
@@ -550,8 +635,11 @@
                 </div>
                 <div class="p-2.5 bg-white space-y-1">
                     <div class="flex items-center justify-between">
-                        <h4 class="font-bold text-xs text-forest truncate flex-1 mr-1" title="${escapeHtml(item.displayName)}">${escapeHtml(item.displayName)}</h4>
-                        <span class="text-[10px] font-bold text-mutedText">${item.formattedSize}</span>
+                        <div class="flex items-center space-x-1 min-w-0 mr-1">
+                            <h4 class="font-bold text-xs text-forest truncate" title="${escapeHtml(item.displayName)}">${escapeHtml(item.displayName)}</h4>
+                            ${sourceBadge}
+                        </div>
+                        <span class="text-[10px] font-bold text-mutedText flex-shrink-0">${item.formattedSize}</span>
                     </div>
                     <p class="text-[9px] text-mutedText truncate" title="${escapeHtml(item.reason)}">${escapeHtml(item.reason)}</p>
                     ${item.aiClassification ? `
@@ -608,7 +696,9 @@
         const file3 = new File([sample3Text], "forest_cabin_view.jpg", { type: "image/jpeg" });
         const file4 = new File([sampleDocText], "study_notes_calculus_lecture.jpg", { type: "image/jpeg" });
 
-        await processLocalPhotoFiles([file1, file2, file3, file4]);
+        [file1, file2, file3, file4].forEach(f => { f.isSample = true; });
+
+        await processLocalPhotoFiles([file1, file2, file3, file4], true);
     }
 
     // -------------------------------------------------------------------------
@@ -799,6 +889,25 @@
     }
 
     // -------------------------------------------------------------------------
+    // Dev Challenge Story Modal Handlers
+    // -------------------------------------------------------------------------
+    function openStoryModal() {
+        const modal = document.getElementById('story-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    function closeStoryModal() {
+        const modal = document.getElementById('story-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Gemma AI Setup & Diagnostics Modal Handlers
     // -------------------------------------------------------------------------
     function openGemmaDiagnosticsModal() {
@@ -923,6 +1032,7 @@
     function initApp() {
         initServices();
         initReducedMotion();
+        initDragAndDrop();
 
         // Bind file input change
         const fileInput = document.getElementById('photo-file-input');
@@ -959,6 +1069,8 @@
         executeFinalSweep,
         openEmailConnectModal,
         closeEmailConnectModal,
+        openStoryModal,
+        closeStoryModal,
         openGemmaDiagnosticsModal,
         closeGemmaDiagnosticsModal,
         runGemmaDiagnostics,

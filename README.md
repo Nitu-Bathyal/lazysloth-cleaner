@@ -2,13 +2,26 @@
 
 > **“Stay cozy. We'll sort the clutter together.”**
 
-LazySloth Cleaner is a cozy, privacy-first companion application designed to help you declutter photos, promotional emails, and message clutter without anxiety, false promises, or privacy intrusions.
+**Live Website:** [https://lazysloth-cleaner.onrender.com/](https://lazysloth-cleaner.onrender.com/)  
+**GitHub Repository:** [https://github.com/Nitu-Bathyal/lazysloth-cleaner](https://github.com/Nitu-Bathyal/lazysloth-cleaner)
+
+LazySloth Cleaner is a cozy, privacy-first decluttering application created for the Dev Challenge. It helps people manage photo duplicates, promotional newsletters, and message clutter without anxiety, scary delete buttons, or privacy compromises.
+
+---
+
+## 🏆 The Dev Challenge: Three Selected Technologies
+
+| Technology | Role in LazySloth Cleaner | Zero-Budget Implementation & Responsible AI |
+|---|---|---|
+| **1. Gemma** | Google open multimodal model family for visual clutter reasoning | **Honest boundaries.** Multimodal PaliGemma requires vision encoder layers (SigLIP/ViT). The app never fabricates predictions. When unconfigured, it explicitly reports *Gemma AI: Offline* and executes byte-for-byte SHA-256 duplicate detection 100% locally on-device. An optional local companion (`companion/gemma_companion.py`) provides local loopback inference with zero paid cloud bills. |
+| **2. GitHub Copilot** | Dev-time AI pair programmer | Used extensively across development to scaffold reactive state stores, write Web Crypto SHA-256 hashing routines, generate Chrome CDP end-to-end tests, and tune CSS keyframe animations. |
+| **3. Render** | Cloud hosting & continuous deployment | Hosts the live web application on Render's global static network with zero downtime and automated deployment on git push to `main`. |
 
 ---
 
 ## 🌟 Highlights & Brand Preservation
 
-- **Authentic Cute Mascot:** Preserves the beloved LazySloth character with his cozy pink hoodie, headphones, pointed wizard hat with star pin, and magical golden leaf broom.
+- **Original Mascot Artwork Preserved:** The iconic LazySloth character remains completely authentic: cozy pink hoodie, headphones, pointed wizard hat with star pin, and magical golden leaf broom.
 - **Expressive Living Animations:**
   - Gentle idle floating on branch (`anim-float`)
   - Cozy sleeping state on the Home screen (`eyes-closed`, breathing, and floating Zs)
@@ -16,8 +29,13 @@ LazySloth Cleaner is a cozy, privacy-first companion application designed to hel
   - Broom sweeping motion during scanning (`anim-sweep` and cleaning leaf particles)
   - Cheerful celebration upon completing a sweep
   - Interactive wake-up on click/tap
-- **Accessibility & Battery Conservation:** Full support for `prefers-reduced-motion` and an in-app toggle that instantly halts intense animations for users who prefer stillness.
-- **100% On-Device & Truthful:** Zero tracking, zero telemetry, and zero cloud uploads. The app clearly discloses browser sandbox boundaries and never fakes AI or account connections.
+- **Accessibility & Motion Control:** Full support for `prefers-reduced-motion` with an in-app toggle that instantly halts intense animations for users who prefer stillness.
+- **100% On-Device & Truthful:**
+  - Drag-and-drop or file picker for local images.
+  - SHA-256 duplicate identification computed directly in the browser's Web Crypto memory.
+  - Interactive Batch Scan Summary widget displaying total photos, exact duplicates, protected items, and reclaimable space.
+  - Clear visual badges distinguishing `[Demo Sample]` from `[Local File]`.
+  - Invariant protection: study notes, lectures, whiteboards, and receipts can **never** be selected for cleanup.
 
 ---
 
@@ -27,7 +45,7 @@ LazySloth Cleaner is a cozy, privacy-first companion application designed to hel
 - **Styling:** Tailwind CSS, FontAwesome 6, Google Fonts (*Plus Jakarta Sans* & *Fredoka*).
 - **Duplicate Engine:** Browser native **Web Crypto API** (`crypto.subtle.digest('SHA-256')`) for byte-for-byte exact duplicate identification.
 - **Review Architecture:** Centralized reactive `ReviewStore` with stable item IDs and protective guardrails.
-- **AI Service Boundary:** Clean decoupled `GemmaClassifierService` ready for future on-device Gemma models (WebGPU / LiteRT).
+- **AI Service Boundary:** Clean decoupled `GemmaClassifierService` supporting both on-device WebGPU/LiteRT and local loopback companions.
 - **Deployment Target:** Render Static Site (`render.yaml`) and zero-dependency local Node server (`server.js`).
 
 ---
@@ -36,6 +54,7 @@ LazySloth Cleaner is a cozy, privacy-first companion application designed to hel
 
 ### Prerequisites
 - Node.js (v18+ recommended) or any modern web browser.
+- Python 3.10+ (optional, only if running the local Gemma companion server).
 
 ### Option A: Run via Node Local Server (Recommended)
 ```bash
@@ -45,12 +64,21 @@ cd "C:\Users\DELL\.gemini\antigravity\scratch\lazysloth-cleaner"
 # 2. Start the local server
 npm start
 ```
-Open your browser at: **`http://localhost:3000`** (or open `http://localhost:3000/lazysloth_cleaner.html`).
+Open your browser at: **`http://localhost:3000`** (or `http://localhost:3000/lazysloth_cleaner.html`).
 
-### Option B: Standalone File (No Server Required)
-Simply double-click `lazysloth_cleaner.html` or `index.html` in Windows Explorer or open it directly in Chrome, Edge, Safari, or Firefox:
+### Option B: Run the Local Gemma Companion (Optional, Zero Paid Hosting)
+```bash
+# Install companion dependencies
+pip install -r requirements.txt
+
+# Start companion in standby mode (does not download weights without consent)
+python companion/gemma_companion.py
 ```
-file:///C:/Users/DELL/.gemini/antigravity/scratch/lazysloth-cleaner/lazysloth_cleaner.html
+
+### Option C: Standalone File (No Server Required)
+Simply open `index.html` or `lazysloth_cleaner.html` directly in Chrome, Edge, Safari, or Firefox:
+```
+file:///C:/Users/DELL/.gemini/antigravity/scratch/lazysloth-cleaner/index.html
 ```
 
 ---
@@ -79,25 +107,47 @@ npm test
    - Honest "unconfigured" status reporting.
    - Explicit labeling of heuristic recommendations (`method: 'heuristic'`).
    - WebGPU and WebAssembly environment checking.
+   - Remote upload consent gating.
 4. **Headless Browser E2E:**
-   - Brand name and mascot SVG rendering.
-   - Sleeping sloth on Home screen.
-   - All tab navigation routes (Home, Photos, Inbox, Review, Settings).
+   - Mascot SVG rendering and nap mode on home.
+   - Tab navigation (Home, Photos, Inbox, Review, Settings).
+   - Dev Challenge Story modal opening and 3 technologies verification.
    - Reduced motion toggle affecting DOM classes.
    - Real local photo batch processing with synthetic duplicate detection.
+   - Batch scan summary card and demo sample badges.
    - Confirmation modal guardrails and safe cancellation.
    - Zero console errors during all user interactions.
    - Responsive layout checks across 360px, 440px, and 1024px viewports.
 
 ---
 
-## 🔍 How to Use the Working Photo Duplicate Flow
+## ⏱️ 2-Minute Reviewer Tour
 
-1. Open the app and navigate to the **Photos** tab.
-2. Click **"Select Local Photos"** to pick image files from your computer, or click **"Load Test Batch"** to test immediately with built-in synthetic image blobs.
-3. LazySloth's broom sweeps while computing local SHA-256 hashes:
-   - Identical byte hashes are grouped together.
-   - The first file is kept safe as the **Original**.
+1. **Open the Dev Challenge Story:** Click the **📖 Story** button in the header or the **Dev Challenge Story & Guide** card on the Home screen.
+2. **Test Photos:** Switch to the **Photos** tab. Drag & drop image files into the drop zone, or click **"Load Sample Photos"** for an instant zero-upload test batch.
+3. **Observe Honest Categorization:**
+   - Exact duplicates are tagged **"Exact Match"** and pre-selected.
+   - Calculus lecture notes are automatically tagged **"Keep Safe"** and protected with a lock icon.
+   - Inspect the **Batch Scan Summary** widget showing total files, duplicates, and reclaimable bytes.
+4. **Check Review Guardrails:** Switch to the **Review** tab, click **"Sweep Away Selected Items"**, then click **"Cancel"** — notice the items remain intact in the queue.
+5. **Inspect AI Status:** Tap the **Gemma AI: Offline** badge to open the diagnostics modal, verify your hardware capabilities, and review why PaliGemma 3B is kept offline rather than faked.
+
+---
+
+## 🔒 Privacy & Architecture Guardrails
+
+| Feature | Current State | Truthful Disclosure |
+|---|---|---|
+| **Photos** | Local File Picker / Drag & Drop with SHA-256 Hashing | Only processes files you explicitly select or drop. 100% on-device in browser memory. No server uploads. |
+| **Email** | Demo Mode | Not connected. Real integration requires OAuth 2.0 PKCE with read-only scopes (`gmail.readonly`). Zero password storage. |
+| **SMS / Messages** | Demo Mode (Sandbox Notice) | Web browsers cannot access device SMS due to OS security sandboxing. Native mobile wrapper planned. |
+| **Gemma AI** | Truthful Status & Companion Interface | Heuristic rules are explicitly labeled `Rule: [category]`. No fake claims of active AI neural inference. |
+| **File Deletion** | Safe Session Removal | Browser security prevents deleting device files. Items are removed from in-memory review. |
+
+---
+
+## 📄 License
+MIT License. LazySloth character design & artwork copyright protected.
    - Subsequent identical files are tagged with **"Exact Match"** and pre-selected for cleanup.
    - Files matching notes/study/receipts/whiteboards are automatically tagged **"Keep Safe"** and unselected.
 4. Click **"Proceed to Review Selected Items"** to view candidate items.

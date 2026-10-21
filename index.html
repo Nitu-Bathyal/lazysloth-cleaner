@@ -70,7 +70,11 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5">
+                <button onclick="LazySlothApp.openStoryModal()" class="bg-butter/80 hover:bg-butter text-forest px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center space-x-1 border border-sage/30 transition shadow-sm" title="Read the Dev Challenge Story & Guide">
+                    <i class="fa-solid fa-book-open text-[10px]"></i>
+                    <span>Story</span>
+                </button>
                 <button onclick="LazySlothApp.openGemmaDiagnosticsModal()" id="ai-status-pill" class="bg-sageLight text-forest px-2.5 py-1 rounded-full text-xs font-semibold flex items-center space-x-1.5 border border-sage/30 hover:bg-sage/40 transition shadow-sm" title="Click to view Gemma AI diagnostics & settings">
                     <span id="ai-status-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
                     <span id="ai-status-label" class="text-[10px] font-bold text-forest">Gemma AI: Offline</span>
@@ -309,6 +313,23 @@
                     </div>
                 </div>
 
+                <!-- Dev Challenge Story Callout -->
+                <div onclick="LazySlothApp.openStoryModal()" class="paper-card rounded-2xl p-3 bg-white border border-sage/30 flex items-center justify-between hover:border-sage transition cursor-pointer active:scale-[0.99] shadow-sm">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-butter/60 text-forest flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="fa-solid fa-sparkles"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-forest">Dev Challenge Story & Guide</h4>
+                            <p class="text-[10px] text-mutedText">Why LazySloth? Read our responsible AI design</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-forest bg-sageLight px-2.5 py-0.5 rounded-full flex items-center space-x-1 flex-shrink-0">
+                        <span>Read</span>
+                        <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                    </span>
+                </div>
+
                 <!-- Three Cleanup Categories -->
                 <div class="space-y-2">
                     <h3 class="text-xs font-bold text-mutedText uppercase tracking-wider px-1">Clutter Categories</h3>
@@ -395,8 +416,8 @@
                     </button>
                 </div>
 
-                <!-- Real Local Photo Picker Controls -->
-                <div class="paper-card rounded-2xl p-3.5 border border-sage/30 space-y-2.5">
+                <!-- Real Local Photo Picker Controls with Drag & Drop -->
+                <div id="photo-drop-zone" class="paper-card rounded-2xl p-3.5 border-2 border-dashed border-sage/40 space-y-2.5 transition-all text-center">
                     <input type="file" id="photo-file-input" multiple accept="image/*" class="hidden">
                     
                     <div class="flex items-center space-x-2">
@@ -410,9 +431,48 @@
                         </button>
                     </div>
 
-                    <p class="text-[10px] text-mutedText leading-relaxed">
-                        <i class="fa-solid fa-lock text-emerald-600 mr-1"></i>
-                        Files stay entirely on your device. Exact duplicate detection uses browser SHA-256 hashing.
+                    <p class="text-[10px] text-mutedText leading-relaxed flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-lock text-emerald-600 mr-0.5"></i>
+                        <span>100% On-Device. Drag & drop images here or browse files.</span>
+                    </p>
+                </div>
+
+                <!-- Batch Scan Summary Card (Shows when photos are loaded) -->
+                <div id="photo-summary-widget" class="paper-card rounded-2xl p-3 bg-white border border-sage/30 text-xs hidden space-y-2 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-sage/10 pb-1.5">
+                        <span class="font-bold text-forest text-xs flex items-center space-x-1.5">
+                            <i class="fa-solid fa-chart-pie text-coral"></i>
+                            <span>Batch Scan Summary</span>
+                        </span>
+                        <span id="summary-total-files" class="text-[10px] font-bold text-mutedText bg-cream px-2 py-0.5 rounded-full">0 Photos</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div class="p-1.5 bg-coralLight/40 rounded-xl border border-coral/20">
+                            <span class="block text-mutedText font-medium">Exact Dups</span>
+                            <strong id="summary-dup-count" class="text-xs text-coral font-bold">0</strong>
+                        </div>
+                        <div class="p-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <span class="block text-emerald-850 font-medium">Keep Safe</span>
+                            <strong id="summary-safe-count" class="text-xs text-emerald-700 font-bold">0</strong>
+                        </div>
+                        <div class="p-1.5 bg-sageLight/60 rounded-xl border border-sage/30">
+                            <span class="block text-forest font-medium">Reclaimable</span>
+                            <strong id="summary-cleanable-bytes" class="text-xs text-forest font-bold">0 B</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duplicate Detection & Limitations Info Accordion -->
+                <div class="paper-card rounded-2xl p-2.5 bg-cream/70 border border-sage/20 text-[10px] text-mutedText space-y-1">
+                    <div class="font-bold text-forest flex items-center justify-between cursor-pointer" onclick="document.getElementById('dup-explain-body').classList.toggle('hidden')">
+                        <span class="flex items-center space-x-1">
+                            <i class="fa-solid fa-circle-question text-forest text-xs"></i>
+                            <span>How SHA-256 duplicate matching works (and limits)</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-mutedText"></i>
+                    </div>
+                    <p id="dup-explain-body" class="leading-relaxed hidden pt-1 border-t border-sage/10">
+                        LazySloth computes byte-for-byte <strong>SHA-256</strong> hashes locally in browser memory. Only bit-identical files are marked as duplicates. <em>Limitation:</em> If an image was re-compressed (e.g. by messaging apps) or cropped, its cryptographic hash changes. LazySloth never deletes unverified files to protect your original memories!
                     </p>
                 </div>
 
@@ -691,6 +751,87 @@
                 <div class="pt-1">
                     <button onclick="LazySlothApp.closeEmailConnectModal()" class="w-full py-2.5 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
                         Got it, Return to Inbox
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STORY MODAL -->
+        <div id="story-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity">
+            <div class="bg-white rounded-3xl p-5 w-full max-w-sm space-y-3.5 shadow-2xl border border-sage/30 text-left max-h-[88vh] overflow-y-auto">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-sage/20 pb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-xl bg-butter/70 text-forest flex items-center justify-center text-sm font-bold shadow-sm">
+                            <i class="fa-solid fa-sparkles"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-display font-bold text-sm text-forest">Dev Challenge Story</h3>
+                            <p class="text-[10px] text-mutedText font-medium">Why LazySloth &amp; Responsible AI</p>
+                        </div>
+                    </div>
+                    <button onclick="LazySlothApp.closeStoryModal()" class="w-7 h-7 rounded-full hover:bg-slate-100 text-mutedText flex items-center justify-center text-sm transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Section 1: The Problem & The Cozy Solution -->
+                <div class="space-y-1.5 bg-cream/70 p-3 rounded-2xl border border-sage/20 text-xs">
+                    <h4 class="font-bold text-forest text-xs flex items-center space-x-1.5">
+                        <i class="fa-solid fa-heart text-coral"></i>
+                        <span>The Problem &amp; Our Philosophy</span>
+                    </h4>
+                    <p class="text-[11px] text-darkText leading-relaxed">
+                        Digital clutter causes anxiety and cognitive overload. Traditional cleaning utilities are aggressive and often accidentally delete irreplaceable study notes, whiteboard captures, or medical receipts.
+                    </p>
+                    <p class="text-[11px] text-darkText leading-relaxed">
+                        <strong>LazySloth Cleaner</strong> takes a calm, mindful approach: "Stay cozy, we'll sort the clutter together." No stress, no rush, and zero unconfirmed actions.
+                    </p>
+                </div>
+
+                <!-- Section 2: Selected Technologies -->
+                <div class="space-y-1.5 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+                    <h4 class="font-bold text-forest text-xs flex items-center space-x-1.5">
+                        <i class="fa-solid fa-cubes text-forest"></i>
+                        <span>Selected Technologies</span>
+                    </h4>
+                    <ul class="space-y-1 text-[10.5px] text-darkText">
+                        <li><strong>1. Gemma:</strong> Google's open vision-language model family for multimodal clutter reasoning and private local endpoints.</li>
+                        <li><strong>2. GitHub Copilot:</strong> Our AI pair programmer used to scaffold algorithms, test cases, and CSS animations.</li>
+                        <li><strong>3. Render:</strong> Cloud hosting platform delivering zero-downtime static delivery with automated GitHub deployment.</li>
+                    </ul>
+                </div>
+
+                <!-- Section 3: Responsible AI & Truthful Fallbacks -->
+                <div class="space-y-1.5 bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200/60 text-xs">
+                    <h4 class="font-bold text-emerald-900 text-xs flex items-center space-x-1.5">
+                        <i class="fa-solid fa-shield-halved text-emerald-700"></i>
+                        <span>Honest &amp; Responsible AI</span>
+                    </h4>
+                    <p class="text-[10.5px] text-emerald-950 leading-relaxed">
+                        We <strong>never fabricate AI predictions</strong>. If PaliGemma weights are offline, we transparently report <em>"AI Offline"</em> and run cryptographic SHA-256 duplicate detection 100% locally in your browser. All note and document protections remain active.
+                    </p>
+                </div>
+
+                <!-- Section 4: 2-Minute Reviewer Guide -->
+                <div class="space-y-1.5 bg-butter/25 p-3 rounded-2xl border border-butter/60 text-xs">
+                    <h4 class="font-bold text-forest text-xs flex items-center space-x-1.5">
+                        <i class="fa-solid fa-stopwatch text-forest"></i>
+                        <span>2-Minute Reviewer Tour</span>
+                    </h4>
+                    <ol class="space-y-1 text-[10.5px] text-darkText list-decimal list-inside leading-relaxed">
+                        <li><strong>Try Photos:</strong> Click <em>"Load Sample Photos"</em> or drop your own image files.</li>
+                        <li><strong>Observe Detection:</strong> Check the exact duplicate match and the automatic <em>Keep Safe</em> protection for study notes.</li>
+                        <li><strong>Check Review Queue:</strong> Switch to the <em>Review</em> tab to inspect selected items.</li>
+                        <li><strong>Test Guardrails:</strong> Click <em>"Sweep Away"</em>, then click <em>"Cancel"</em> — the queue is preserved!</li>
+                        <li><strong>Inspect AI Status:</strong> Tap the <em>Gemma AI: Offline</em> badge to view hardware tests and model architecture facts.</li>
+                    </ol>
+                </div>
+
+                <!-- Close Button -->
+                <div class="pt-1">
+                    <button onclick="LazySlothApp.closeStoryModal()" class="w-full py-2.5 bg-forest hover:bg-forestLight text-white font-bold text-xs rounded-xl shadow-sm transition">
+                        Enjoy the Tour!
                     </button>
                 </div>
             </div>
