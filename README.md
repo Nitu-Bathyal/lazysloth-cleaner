@@ -3,7 +3,7 @@
 > **“Stay cozy. We'll sort the clutter together.”**
 
 [![Live Website](https://img.shields.io/badge/Live%20Demo-lazysloth--cleaner.onrender.com-success?style=for-the-badge&logo=render&logoColor=white)](https://lazysloth-cleaner.onrender.com/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/Nitu-Bathyal/lazysloth-cleaner)
+
 
 **Live Website:** [https://lazysloth-cleaner.onrender.com/](https://lazysloth-cleaner.onrender.com/)  
 **GitHub Repository:** [https://github.com/Nitu-Bathyal/lazysloth-cleaner](https://github.com/Nitu-Bathyal/lazysloth-cleaner)
