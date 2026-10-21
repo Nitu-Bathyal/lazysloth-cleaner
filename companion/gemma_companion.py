@@ -54,11 +54,20 @@ def load_paligemma_model(model_path_or_id, device="cpu"):
         processor = AutoProcessor.from_pretrained(model_path_or_id)
         
         dtype = torch.float32 if device == "cpu" else torch.float16
+        load_kwargs = {"torch_dtype": dtype}
+        try:
+            import accelerate
+            load_kwargs["device_map"] = device
+        except ImportError:
+            # accelerate is not installed; load directly without device_map
+            pass
+
         model = PaliGemmaForConditionalGeneration.from_pretrained(
             model_path_or_id,
-            torch_dtype=dtype,
-            device_map=device
+            **load_kwargs
         )
+        if "device_map" not in load_kwargs:
+            model = model.to(device)
         model.eval()
 
         MODEL_STATE["loaded"] = True
@@ -78,6 +87,7 @@ def load_paligemma_model(model_path_or_id, device="cpu"):
 
 @app.route("/", methods=["GET"])
 @app.route("/health", methods=["GET"])
+@app.route("/v1/health", methods=["GET"])
 def health():
     """Health check endpoint queried by LazySloth Cleaner frontend."""
     if MODEL_STATE["loaded"]:
@@ -111,6 +121,7 @@ def health():
         }), 503
 
 @app.route("/classify", methods=["POST"])
+@app.route("/v1/classify", methods=["POST"])
 def classify():
     """
     Image classification endpoint. Accepts multipart/form-data with 'file'.
